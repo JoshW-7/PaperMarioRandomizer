@@ -1,0 +1,17 @@
+
+.vscode
+__pycache__
+debug
+StarRod/MOD/audio
+StarRod/MOD/battle
+StarRod/MOD/editor
+StarRod/MOD/globals
+StarRod/MOD/globals_enum_original
+StarRod/MOD/image
+StarRod/MOD/logs
+StarRod/MOD/map
+StarRod/MOD/out
+StarRod/MOD/res
+StarRod/MOD/sprite
+StarRod/MOD/strings
+StarRod/MOD/world

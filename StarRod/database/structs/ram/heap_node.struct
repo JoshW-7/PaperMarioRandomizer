@@ -1,0 +1,11 @@
+type: ram
+size: 10
+fields:
+{
+%  pos	: type				: name
+	0	: heap_node* 		: next
+	4	: int 				: size
+	8	: short 			: allocated
+	A	: short 			: listIndex % more like an ID
+	C	: int 				: capacity
+}

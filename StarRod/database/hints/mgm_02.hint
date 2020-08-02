@@ -1,0 +1,5 @@
+
+add	80241DCC	Function
+name	80241DCC	Function_CalculateScore		% also adds to cumulative winnings and record
+add	80242340	Function
+name	80242340	Function_MonitorGame		% increments times played on first call, subsequently updates frame counter

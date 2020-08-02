@@ -1,0 +1,11 @@
+add		802430C8	Function
+add		80243F84	Script
+add		80244450	Script
+add		80248504	Script
+
+% Chuck Quizmo
+add		8024525C	IntTable
+newline	8024525C	2
+name	8024525C	QuizRequirements
+add		8024521C	ByteTable
+name	8024521C	QuizAnswers

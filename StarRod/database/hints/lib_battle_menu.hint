@@ -1,0 +1,26 @@
+
+
+add		802A3C98	Function
+add		802A43DC	Function
+add		802A4494	Function
+add		802A4534	Function
+
+add		802A5290	Function
+add		802A5738	Function
+
+add		802A8180	Function
+add		802A9AE8	Function
+
+add 	802A45D8	Function
+name 	802A45D8	use_strats_menu		% sets the active menu to 'Strategies'
+
+add 	802A472C	Function
+name 	802A472C	free_strats_menu
+
+add		802A9DAC	Function
+add		802AA05C	Function
+add		802AA640	Function
+add		802AB330	Function
+add		802AB338	Function
+
+add		802AA0D8	Function

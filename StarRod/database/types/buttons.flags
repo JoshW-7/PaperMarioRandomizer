@@ -1,0 +1,18 @@
+Buttons	% namespace
+buttons	% library name
+false	% reversed
+
+8000 = A
+4000 = B
+2000 = Z
+1000 = Start
+0800 = D_up
+0400 = D_down
+0200 = D_left
+0100 = D_right
+0020 = L
+0010 = R
+0008 = C_up
+0004 = C_down
+0002 = C_left
+0001 = C_right

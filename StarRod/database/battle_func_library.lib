@@ -1,0 +1,609 @@
+
+% functions, scripts, etc. only loaded in battles
+
+{version=1.0}
+{scope=battle}
+
+asm : 8023E000, 16C8E0 : get_dpad_input_radial	: void : float* angle, float* magnitude
+asm : 8023E130, 16CA10 : initialize_battle		: void : void 
+
+% a closer look at these battle state functions is warranted
+asm : 8023E438, 16CD18 : update_battle_state "main battle logic update function. delegates to update functions for each battle state." : void : void
+asm : 8023EA7C, 16D35C : draw_main_battle_ui	: void : void
+asm : 8023FFA0, 16E880 : draw_enemy_health_bars : void : void
+asm : 80242024, 170904 : update_heroes_start_turn "executed at the start of the player team's turn" : void : void
+asm : 80242AC8, 1713A8 : switch_to_player : void : void
+asm : 80242BB0, 171490 : update_end_player_turn : void : void
+asm : 80242F00, 1717E0 : switch_to_partner : void : void
+asm : 80243918, 1721F8 : switch_order "executed the frame after switch_to_player or switch_to_partner" : void : void
+asm : 80244F00, 1737E0 : update_run_away : void : void
+
+api : 802456B8, 173F98 : EnablePartnerBlur : void : void
+api : 802456D8, 173FB8 : DisablePartnerBlur : void : void
+
+asm : 80245AD0, 1743B0 : update_player_action : void : void
+asm : 80246B34, 175414 : update_partner_action : void : void
+asm : 80246450, 174D30 : update_player_change_turn : void : void
+
+asm : 802472AC, 175B8C : update_enemy_change_turn : void : void
+asm : 80247570, 175E50 : update_enemy_action : void : void
+
+asm : 802403BC, 16EC9C : update_starpoints_display "draws star points to the screen, also handles updates to totals" : void : void
+
+asm : 80240BBC, 16F49C : delete_actor			: void : actor*
+asm : 80240D68, 16F648 : delete_player_actor	: void : actor*
+asm : 80241218, 16FAF8 : begin_battle			: void : void 
+asm : 80244A50, 173330 : end_battle "occurs on death/loss; kills all scripts, frees all actors, etc" : void : void
+
+asm : 802456F8, 173FD8 : update_swap_partner	: void : void
+
+asm : 8024CF34, 17B814 : use_cam_preset			: void : int id, int
+
+asm : 8024E43C, 17CD1C : cam_target_actor : void : #actorID
+
+asm : 8024E4D8, 17CDB8 : move_cam_over : void : int duration "frames"
+asm : 8024E520, 17CE00 : set_cam_target_pos : void : float posX, float posY, float posZ
+
+asm : 8024E594, 17CE74 : set_cam_zoom : void : int distance
+asm : 8024E5B4, 17CE94 : add_cam_zoom : void : int distance
+asm : 8024E5E0, 17CEC0 : set_cam_zoffset : void : int distance
+asm : 8024E600, 17CEE0 : unfreeze_cam : void : void
+
+api : 8024E61C, 17CEFC : UseCamPreset     : void : int presetIndex
+% 8024E664
+% 8024E6B4
+% 8024E748
+% 8024E820 sets shorts cam[1C] to cam[2A] for 800B22D8 (cameras[1])
+api : 8024E90C, 17D1EC : SetBattleCamTarget "sets the camera target position" : void : int x, int y, int z
+% 8024E9B0 sets vector cam[54] for 800B22D8 (cameras[1])
+
+api : 8024EA58, 17D338 : SetBattleCamOffsetZ    : void : int heightOffset
+api : 8024EA98, 17D378 : AddBattleCamOffsetZ    : void : int heightOffset
+api : 8024EAE4, 17D3C4 : SetBattleCamYaw        : void : int yaw 
+api : 8024EB24, 17D404 : BattleCamTargetActor   : void : #actorID
+% 8024EB84 -- another way to CamTargetActor with a second, unknown argument
+api : 8024EC08, 17D4E8 : MoveBattleCamOver "moves the camera to a preset over a certain number of frames" : void : int duration "frames"
+api : 8024EC6C, 17D54C : SetBattleCamZoom : void : int distance "radial distance from target"
+api : 8024ECAC, 17D58C : AddBattleCamZoom : void : int amount "change in radial distance from target"
+% 8024ECF8 -- sets camera bytes at 8029F2A2/A3/A5
+api : 8024ED78, 17D658 : FreezeBattleCam : void : bool frozen
+
+asm : 8024EF68, 17D848 : create_popup					: ptr : void
+asm : 8024F960, 17E240 : show_battle_message			: void : int messageIndex, int duration
+asm : 8024FA04, 17E2E4 : show_variable_battle_message	: void : int messageIndex, int duration, int value
+asm : 8024FAB4, 17E394 : is_popup_displayed             : bool : void
+asm : 8024FAC4, 17E3A4 : set_popup_duration				: void : int duration
+api : 8024FB0C, 17E3EC : close_action_command_instruction_popup : void : void
+
+asm : 80250EA4, 17F784 : show_message_popup			: void : int messageIndex
+api : 802512B4, 17FB94 : ShowMessageBox				: void : int messageIndex "from table at 80283770", int duration
+api : 8025130C, 17FBEC : ShowVariableMessageBox "used for \"attack power increased by X', etc" : void : int messageIndex "from table at 80283770", int duration, int varValue
+api : 80251384, 17FC64 : IsMessageBoxDisplayed : void : {out} var {outType=bool}
+api : 802513CC, 17FCAC : WaitForMessageBoxDone : void : void
+api : 802513F0, 17FCD0 : ForceCloseMessageBox : void : void
+api : 80251408, 17FCE8 : SetMessageBoxDuration : void : int duration
+
+% start of file -->
+asm : 802516E8, 17FFC8 : calc_item_damage_enemy : int : void
+asm : 802515D0, 17FEB0 : calc_item_check_hit : #hitResult : void
+api : 80252728, 181008 : ItemDamageEnemy "used by items and star powers to inflict damage or status on an enemy without a source actor" : void : {out} var retVal {outType=#hitResult}, #damageType, int status, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 80252924, 181204 : ItemAfflictEnemy "identical to ItemDamageEnemy, with an extra arg for status effects to have variable chance to afflict" : void : {out} var retVal {outType=#hitResult}, #damageType, int status, int statusChance, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 80252D40, 181620 : ItemCheckHit : void : {out} var retVal {outType=#hitResult}, #damageType, int status, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+% <-- end of file
+
+% start of file -->
+api : 80252F30, 181810 : ActorSpeak		: void : stringID {print}, #actorID, int partIndex, int talkAnim, int idleAnim
+api : 802532D0, 181BB0 : EndActorSpeech : void : #actorID, int partIndex, int talkAnim, int idleAnim
+api : 80253538, 181E18 : ShowBattleChoice "display a choice message and wait for selection" : Var[0] int selectedIndex : {print} stringID options
+
+api : 802535F8, 181ED8 : OverrideBattleDmaDest "sets the destination for LoadBattleDmaData, overriding values from the table" : void : int addr
+api : 80253624, 181F04 : LoadBattleDmaData "loads an entry from the current battle section DmaTable" : void : int index
+
+api : 8025385C, 18213C : PlaySoundAtActor : void : #actorID, #soundID
+api : 802538D0, 1821B0 : PlaySoundAtPart  : void : #actorID, int partIndex, #soundID
+
+api : 80253AA8, 182388 : {warning:unused} SetForegroundModelsVisibleUnchecked "same as 80253AEC, but skips a step validating the model IDs" : void : bool "1 = visible | 0 = hidden"
+api : 80253AEC, 1823CC : SetForegroundModelsVisible : void : bool "1 = visible | 0 = hidden"
+
+api : 80253B94, 182474 : MakeStatusField : void : {out} var status, {raw} int typeFlag "00001000 for sleep, etc", int chance, int duration
+asm : 80253C20, 182500 : is_actor_hp_bar_visible : bool : actor*
+asm : 80253C9C, 18257C : is_actortype_hpbar_visible : bool : int actorType
+asm : 80253D10, 1825F0 : save_tattle_flags "includes others sharing a group" : void : int actorType
+asm : 80253E78, 182758 : load_tattle_flags "includes others sharing a group" : void : int actorType
+
+api : 80253FDC, 1828BC : MultiplyByActorScale "multiplies a scalar by an actor's scale" : void : {out} fvar value
+api : 80254048, 182928 : MultiplyVec2ByActorScale "multiplies 2D vector by an actor's scale factor" : void : {out} fvar x, {out} fvar y
+api : 802540DC, 1829BC : MultiplyVec3ByActorScale "multiplies 3D vector by an actor's scale factor" : void : {out} fvar x, {out} fvar y, {out} fvar z
+api : 80254198, 182A78 : ApplyShrinkFromOwner "halves damage if owner actor is shrunk" : void : {out} var damage
+api : 80254218, 182AF8 : StartRumble		: void : int type "0-B"
+
+asm : 80254288, 182B68 : mtx_mirror_y "sets mtx to a scaling matrix which flips over Y axis" : void : matrix4f* mtx
+asm : 802542CC, 182BAC : enable_actor_blur : void : actor*
+asm : 8025455C, 182E3C : disable_actor_blur : void : actor*
+asm : 80254644, 182F24 : enable_partner_blur : void : void
+asm : 80254668, 182F48 : disable_partner_blur : void : void
+
+asm : 802546D4, 182FB4 : enable_player_blur		: void : void
+asm : 80254914, 1831F4 : disable_player_blur	: void : void
+
+asm : 8025D03C, 18B91C : _remove_part_decoration : void : actor_part*, int decorationIndex
+
+asm : 80260B04, 18F3E4 : activate_defend_command : void : void
+
+api : 802619C8, 1902A8 : HasMerleeCastsLeft : Var[0] int result : void
+
+api : 80261BA8, 190488 : FXRecoverHP : void : int posX, int posY, int posZ, int amount
+api : 80261C68, 190548 : FXRecoverFP : void : int posX, int posY, int posZ, int amount
+api : 80261D28, 190608 : IncrementPlayerHP "will not exceed maximum" : void : void
+api : 80261D60, 190640 : IncrementPlayerFP "will not exceed maximum" : void : void
+
+asm : 80262240, 190B20 : create_target_list : void : actor*, int team "0 = player | 1 = enemy"
+asm : 8026302C, 19190C : player_create_target_list : void : actor*
+asm : 80263048, 191928 : enemy_create_target_list : void : actor*
+
+asm : 80263B10, 1923F0 : count_power_plus			: int count : int damageElement
+asm : 80263BC8, 1924A8 : deduct_current_move_fp		: void : void
+asm : 80263CFC, 1925DC : set_animation			: void : #actorID, int partIndex, animID
+asm : 80263EB8, 192798 : set_animation_rate 	: void : #actorID, int partIndex, float rate
+asm : 80263F68, 192848 : set_actor_yaw			: void : #actorID, int yaw
+asm : 80263F9C, 19287C : set_part_yaw : void : #actorID, int partIndex, int value
+
+asm : 80264128, 192A08 : add_xz_vec3f : void : float* vector, float speed, float angleDeg
+asm : 802641C0, 192AA0 : add_xz_vec3f_copy1 "identical to func_80264128" : void : float* vector, float speed, float angleDeg
+asm : 80264258, 192B38 : add_xz_vec3f_copy2 "identical to func_80264128" : void : float* vector, float speed, float angleDeg
+
+asm : 802642F0, 192BD0 : play_movement_dust_effects : void : int mode "0,1 = walking | 2 = jump", float posX, float posY, float posZ, float angle "degrees"
+asm : 8026445C, 192D3C : get_actor_part : actor_part* : #actorID, int partIndex
+asm : 802644A4, 192D84 : load_player_actor : void : void
+asm : 80264B74, 193454 : load_partner_actor : void : void
+
+api : 802653A4, 193C84 : create_actor : void : $Formation formationData
+
+asm : 80265E44, 194724 : lookup_defense : int defenseValue : $DefenseTable, int elementKey
+asm : 80265E98, 194778 : lookup_status_chance : int percent : $StatusTable, int statusChanceKey 
+asm : 80265EEC, 1947CC : lookup_status_duration_mod : int percent : $StatusTable, int statusDurationKey
+asm : 80265F40, 194820 : inflict_status : bool success : Actor* target, int statusTypeKey, int duration
+asm : 80266254, 194B34 : inflict_partner_ko : bool success "always returns true" : Actor* target, int statusTypeKey, int duration
+asm : 802662BC, 194B9C : get_defense "calculates the defense against an attack based on the attack's element flags and a defense table" : int defenseValue : Actor* actor "unused", $DefenseTable table, int elementflags
+
+asm : 80266B78, 195458 : try_inflict_status : int duration :  Actor* actor, int statusTypeKey, int statusDurationKey
+asm : 80266CF0, 1955D0 : inflict_status_set_duration : bool success : Actor* actor, int statusTypeKey, int statusDurationKey "unused", int duration
+
+asm : 802665AC, 194E8C : show_damage_popup		: void : float posX, float posY, float posZ, int amount
+
+asm : 80267114, 1959F4 : add_part_decoration : void : actor_part*, int decorationIndex, #decoration
+asm : 80267190, 195A70 : add_actor_decoration "adds given decoration to all visible parts" : void : actor* actor, int decorationIndex, #decoration
+asm : 80267218, 195AF8 : remove_part_decoration	: void : actor_part* part, int decorationIndex
+asm : 80267234, 195B14 : remove_actor_decoration : void : actor* actor, int decorationIndex
+asm : 802672AC, 195B8C : heroes_is_ability_active : int activeCount : #abilityID
+asm : 8026731C, 195BFC : create_part_shadow : void : #actorID, int partIndex
+asm : 802673A0, 195C80 : remove_part_shadow : void : #actorID, int partIndex
+asm : 80267454, 195D34 : remove_player_buffs : void : #playerBuff
+% 8026777C suspected to update the debuff display icons
+asm : 80267A9C, 19637C : reset_all_actor_sounds : void : actor*
+asm : 80267BDC, 1964BC : hide_foreground_models_unchecked : void : void
+asm : 80267C48, 196528 : show_foreground_models_unchecked : void : void
+asm : 80267CB4, 196594 : hide_foreground_models : void : void
+asm : 80267D28, 196608 : show_foreground_models : void : void
+api : 80267D9C, 19667C : StartRumbleWithParams : void : int frequency, int duration
+asm : 80267DF4, 1966D4 : start_rumble_type : void : int type
+% <-- end of file
+
+% start of file -->
+api : 80267ED0, 1967B0 : LoadItemScript		:  Var[0] int itemScript, Var[1] int success "always 1" : void
+api : 8026801C, 1968FC : LoadFreeItemScript "uses an item without losing one from inventory, used by Mystery" : Var[0] int itemScript, Var[1] int success "always 1" : void
+api : 80268130, 196A10 : LoadMoveScript : void : void
+% <-- end of file
+
+% start of file -->
+api : 802681C0, 196AA0 : LoadActionCommand : void : int actionCommandIndex "0x01 - 0x17"
+
+asm : 80268ECC, 1977AC : check_block_input			: bool : int buttonMask
+
+api : 80269294, 197B74 : GetActionSuccess "check whether the last action command executed correctly; exactly the same as func_802694F8" : void : {out} var success ">0 when successful, -1 when failed"
+api : 802692C0, 197BA0 : SetActionSuccess : void : int success ">0 when successful, -1 when failed"
+
+api : 802694F8, 197DD8 : GetActionSuccessCopy "check whether the last action command executed correctly; exactly the same as func_80269294" : void : {out} var success ">0 when successful, -1 when failed"
+
+% 80269524 : get "byte" battle[86]
+% 80269550 : set "byte" battle[86]
+api : 8026957C, 197E5C : GetBlockResult "returns result of most recent block attempt" : void : {out} var blockResult "0 = fail, 1 = success, -1 = fail due to mashing"
+% 802695A8 : get "byte" battle[84]
+% 802695D4 : set "byte" battle[84]
+% 80269600 : get "byte" battle[85]
+% 8026962C : set "byte" battle[85]
+
+api : 80269410, 197CF0 : CloseActionCommandInfo "hide the message box telling you how to use an action command" : void : void
+
+asm : 80269660, 197F40 : count_targets : int : actor*, int homeIndex, int targetSelectionFlags
+asm : 80269698, 197F78 : get_nearest_home_index	: int homeIndex : float x, float y
+asm : 80269754, 198034 : set_goal_pos_to_part : void : float* goalPos "assumed to be float[6], vec3f for start and vec3f for end", #actorID target, int partIndex
+asm : 802699D8, 1982B8 : set_part_goal_to_actor_part : void : actor_part_movement* movement, #actorID, int partIndex
+asm : 80269C24, 198504 : set_actor_current_position	: void : #actorID, float x, float y, float z
+asm : 80269C70, 198550 : set_part_absolute_position : void : #actorID, int partIndex, float x, float y, float z
+asm : 80269D20, 198600 : set_actor_home_position	: void : #actorID, float x, float y, float z
+asm : 80269D6C, 19864C : get_actor : actor* : #actorID
+api : 80269DE4, 1986C4 : LoadBattleSection	: void : int battleSection
+api : 80269E28, 198708 : GetBattlePhase		: void : {out} var battlePhase
+api : 80269E54, 198734 : GetLastElement		: void : {out} var elementFlags
+% 80269E80 : get "byte" battle[19A]
+% 80269EAC : set battle[19A]
+api : 80269EC4, 1987A4 : SetGoalToHome "sets NPC goal position to its home position" : void : #actorID
+api : 80269F2C, 19880C : SetIdleGoalToHome "sets NPC goal position to its home position" : void : #actorID
+api : 80269F94, 198874 : SetGoalToIndex "sets NPC goal position to a standard location from the table at 80283524" : void : #actorID, int indexedLocation
+api : 8026A05C, 19893C : GetIndexFromPos "gets the nearest home index given an actor's current position -- actually performs a sort of floor" : void : #actorID, {out} var nearestHomeIndex
+api : 8026A0D4, 1989B4 : GetIndexFromHome "gets the nearest home index given an actor's home position" : void : #actorID, {out} var nearestHomeIndex
+api : 8026A14C, 198A2C : CountPlayerTargets : void : #actorID, int targetSelectionFlags, {out} var count
+api : 8026A1EC, 198ACC : ForceHomePos "sets home position and teleports there" : void : #actorID, int posX, int posY, int posZ
+api : 8026A2D0, 198BB0 : SetHomePos		: void : #actorID, int posX, int posY, int posZ
+api : 8026A3A8, 198C88 : SetGoalToTarget "sets goal to the position of the actor's target" : void : #actorID
+api : 8026A404, 198CE4 : SetPartGoalToTarget : void : #actorID, int partIndex
+api : 8026A49C, 198D7C : SetGoalToFirstTarget "sets goal to the position of the actor's first available target" : void : #actorID
+api : 8026A510, 198DF0 : SetGoalPos "note: skips any arg = -12345678`" : void : #actorID, int posX {ignore=FF439EB2}, int posY {ignore=FF439EB2}, int posZ {ignore=FF439EB2}
+api : 8026A62C, 198F0C : SetIdleGoal "note: skips any arg = -12345678`" : void : #actorID, int posX {ignore=FF439EB2}, int posY {ignore=FF439EB2}, int posZ {ignore=FF439EB2}
+api : 8026A748, 199028 : AddGoalPos "adjust goal position" : void : #actorID, int dx, int dy, int dz
+api : 8026A820, 199100 : GetGoalPos : void : #actorID, {out} var posX, {out} var posY, {out} var posZ
+api : 8026A8EC, 1991CC : GetIdleGoal "note: skips any arg = -12345678`" : void : #actorID, {out} var posX {ignore=FF439EB2}, {out} var posY {ignore=FF439EB2}, {out} var posZ {ignore=FF439EB2}
+api : 8026A9B8, 199298 : GetPartTarget : void : #actorID, int partIndex, {out} var posX, {out} var posY, {out} var posZ
+api : 8026AAA8, 199388 : GetActorPos : void : #actorID, {out} var posX, {out} var posY, {out} var posZ
+api : 8026AB74, 199454 : GetPartOffset  : void : #actorID, int partIndex, {out} var posX, {out} var posY, {out} var posZ
+api : 8026AC88, 199568 : GetPartPos     : void : #actorID, int partIndex, {out} var posX, {out} var posY, {out} var posZ
+api : 8026AD74, 199654 : GetHomePos     : void : #actorID, {out} var posX, {out} var posY, {out} var posZ
+api : 8026AE40, 199720 : SetActorPos    : void : #actorID, int posX, int posY, int posZ
+api : 8026AF18, 1997F8 : SetPartPos     : void : #actorID, int partIndex, int posX, int posY, int posZ
+api : 8026B0A0, 199980 : SetEnemyTargetOffset "only works for enemy actors: actorID = 020X" : void : #actorID, int partIndex, int offsetX, int offsetY
+api : 8026B1B0, 199A90 : SetAnimation     : void : #actorID, int partIndex,animID
+api : 8026B238, 199B18 : GetAnimation     : void : #actorID, int partIndex, {out} var anim {outType=animID}
+api : 8026B2D0, 199BB0 : SetAnimationRate : void : #actorID, int partIndex, float rate "1.0 = default"
+api : 8026B358, 199C38 : SetActorYaw	: void : #actorID, int yaw
+api : 8026B3C8, 199CA8 : GetActorYaw    : void : #actorID, {out} var yaw
+api : 8026B438, 199D18 : SetPartYaw		: void : #actorID, int partIndex, int yaw
+api : 8026B4C0, 199DA0 : GetPartYaw		: void : #actorID, int partIndex, {out} var yaw
+api : 8026B55C, 199E3C : SetActorJumpGravity "in units/frame^2"	: void : #actorID, float jumpScale
+api : 8026B5D8, 199EB8 : SetActorIdleJumpGravity "in units/frame^2"	: void : #actorID, float jumpScale
+api : 8026B654, 199F34 : SetActorSpeed : void : #actorID, float moveSpeed
+api : 8026B6D0, 199FB0 : SetActorIdleSpeed "set move speed used during idle animation movements" : void : #actorID, float moveSpeed
+api : 8026B74C, 19A02C : SetPartJumpGravity "in units/frame^2" : void : #actorID, int partIndex, int jumpScale
+api : 8026B7EC, 19A0CC : SetPartMoveSpeed : void : #actorID, int partIndex, int moveSpeed
+api : 8026B88C, 19A16C : SetJumpAnimations : void : #actorID, int partIndex "which part will show these animations (note: only actors with a single part support these automatic jump animations)",animID jumpRise "animation for upward motion",animID jumpFall "animation for downward motion",animID jumpLand "animation after landing"
+api : 8026B92C, 19A20C : AddActorPos "adds to current position" : void : #actorID, float dx, float dy, float dz
+api : 8026BA04, 19A2E4 : SetActorDispOffset : void : #actorID, float x, float y, float z
+api : 8026BAE8, 19A3C8 : GetPartDispOffset : void : #actorID, int partIndex, {out} fvar x, {out} fvar y, {out} fvar z
+api : 8026BC38, 19A518 : SetPartDispOffset : void : #actorID, int partIndex, float x, float y, float z
+api : 8026BD88, 19A668 : AddPartDispOffset : void : #actorID, int partIndex, float dx, float dy, float dz
+% 8026BF48 : ??? : bool -- Always called before and after HealNpc, Electrify, Vanish, AttackUp, DefenseUp; "1" increments or "0" decrements counter at battle[8C]
+api : 8026BFB4, 19A894 : GetActorVar : void : #actorID, int varIndex "0-F", {out} var value
+api : 8026C044, 19A924 : SetActorVar : void : #actorID, int varIndex, int value
+api : 8026C0D4, 19A9B4 : AddActorVar "add amount to an actor var" : void : #actorID, int varIndex, int amount
+api : 8026C170, 19AA50 : GetPartMovementVar : void : #actorID, int partIndex, int varIndex, {out} var value
+api : 8026C22C, 19AB0C : SetPartMovementVar : void : #actorID, int partIndex, int varIndex, int value
+api : 8026C2E8, 19ABC8 : AddPartMovementVar : void : #actorID, int partIndex, int varIndex, int amount
+api : 8026C3AC, 19AC8C : SetActorRotation : void : #actorID, {ignore=F1194D80} float Rx, {ignore=F1194D80} float Ry, {ignore=F1194D80} float Rz
+api : 8026C4AC, 19AD8C : SetActorRotationOffset "offsets the center of rotation from default position at sprite bottom center" : void : #actorID, float dx, float dy, float dz
+api : 8026C56C, 19AE4C : GetActorRotation : void : #actorID, {out} var Rx, {out} var Ry, {out} var Rz
+api : 8026C634, 19AF14 : SetPartRotation  : void : #actorID, int partIndex, float Rx, float Ry, float Rz
+api : 8026C740, 19B020 : SetPartRotationOffset "offsets the center of rotation from default position at sprite bottom center" : void : #actorID, int partIndex, float dx, float dy, float dz
+api : 8026C828, 19B108 : GetPartRotation : void : #actorID, int partIndex, {out} fvar Rx, {out} fvar Ry, {out} fvar Rz
+api : 8026C904, 19B1E4 : SetActorScale : void : #actorID, float Sx, float Sy, float Sz
+api : 8026C9C4, 19B2A4 : SetActorScaleModifier "extra scaling factor that can modify an actor's scale independent of its normal one" : void : #actorID, float Sx, float Sy, float Sz
+api : 8026CA84, 19B364 : GetActorScale : void : #actorID, {out} fvar Sx, {out} fvar Sy, {out} fvar Sz
+api : 8026CB4C, 19B42C : SetPartScale : void : #actorID, int partIndex, float Sx, float Sy, float Sz
+api : 8026CC34, 19B514 : GetPartScale : void : #actorID, int partIndex, {out} fvar Sx, {out} fvar Sy, {out} fvar Sz
+api : 8026CD10, 19B5F0 : GetBattleFlags "from battle_status[0]" : void : {out} var flags
+api : 8026CD3C, 19B61C : SetBattleFlagBits "from battle_status[0]" : void : int flags, bool mode "1 = set | 0 = clear"
+api : 8026CDA0, 19B680 : GetBattleFlags2 "from battle_status[4]" : void : {out} var flags
+api : 8026CDCC, 19B6AC : SetBattleFlagBits2 "from battle_status[4]" : void : int flags, bool mode "1 = set | 0 = clear"
+api : 8026CE30, 19B710 : SetActorFlags "set/replace entire flag field" : void : #actorID, int flags
+api : 8026CE8C, 19B76C : SetActorFlagBits : void : #actorID, int flags, bool mode "1 = set | 0 = clear"
+api : 8026CF20, 19B800 : GetActorFlags : void : #actorID, {out} var flags
+api : 8026CF88, 19B868 : SetPartFlags "set/replace entire flag field" : void : #actorID, int partIndex, int flags
+api : 8026D010, 19B8F0 : SetPartFlagBits : void : #actorID, int partIndex, int flags, bool mode "1 = set | 0 = clear"
+api : 8026D0D0, 19B9B0 : SetPartTargetFlags : void : #actorID, int partIndex, int flags
+api : 8026D158, 19BA38 : SetPartTargetFlagBits : void : #actorID, int partIndex, int flags, bool mode "1 = set | 0 = clear"
+api : 8026D218, 19BAF8 : GetPartFlags : void : #actorID, int partIndex, {out} var flags
+api : 8026D2AC, 19BB8C : GetPartTargetFlags : void : #actorID, int partIndex, {out} var flags
+api : 8026D340, 19BC20 : SetPartEventFlags "field at actor_part[7C]" : void : #actorID, int partIndex, {out} var flags
+api : 8026D3C8, 19BCA8 : SetPartEventBits "field at actor_part[7C]" : void : #actorID, int partIndex, int flags, bool mode "1 = set | 0 = clear"
+api : 8026D488, 19BD68 : GetPartEventFlags "field at actor_part[7C]" : void : #actorID, int partIndex, {out} var flags
+% 8026D51C :    set part[80] flags    :   #actorID, int, int           % args : #actorID, partIndex, flags
+% 8026D5A4 :    set part[80] bits     :   #actorID, int, int, bool     % args : #actorID, partIndex, flags, 1 "set : OR flags" | 0 "reset : AND ~flags"
+api : 8026D664, 19BF44 : HPBarToHome "sets location of actor's HP bar to home position + hp offset" : void : #actorID
+api : 8026D7A8, 19C088 : HPBarToCurrent "sets location of actor's HP bar to current position + hp offset" : void : #actorID     
+% 8026D8EC
+% ...
+api : 8026DB64, 19C444 : SummonEnemy : Var[0] #actorID newActorID, Var[A] int ??? : $SpecialFormation {len=1}, ??? flag "0 : default | 1 : general guy"
+api : 8026DE00, 19C6E0 : GetOwnerID "returns the actorID of script owner" : void : {out} var {outType=#actorID}
+api : 8026DE28, 19C708 : SetOwnerID "set script owner to an actorID" : void : #actorID
+api : 8026DE5C, 19C73C : ActorExists : void : #actorID, {out} var {outType=bool} "0 = no | 1 = yes"
+% api : 8026def0 : gets actor part[84] -- #actorID, int partIndex, {out} var
+% api : 8026df88 : gets actor part[8C] -- #actorID, int partIndex, {out} var
+api : 8026E050, 19C930 : SetBattleInputMask "set which buttons battle input will respond to" : void : #buttons
+api : 8026E068, 19C948 : SetBattleInputButtons "set which buttons are currently being pressed/held for battle inputs" : void : #buttons down, #buttons pressed, #buttons held
+api : 8026E098, 19C978 : CheckButtonPress : void : #buttons, {out} var {outType=bool}
+api : 8026E0D0, 19C9B0 : CheckButtonHeld : void : #buttons, {out} var {outType=bool}
+api : 8026E108, 19C9E8 : CheckButtonDown : void : #buttons, {out} var {outType=bool}
+api : 8026E140, 19CA20 : GetBattleState : void : {out} var state
+% several state manipulation functions...
+% 8026E208 : ??? : bool : sets "byte" battle[94] = 1 if arg=0, or -1 if arg=1, unchanged otherwise
+% 8026E260 broken battle function stub, no functionality
+api : 8026E2CC, 19CBAC : PlayerCreateTargetList "create a target list for the player" : void : int targetSelectionFlags
+api : 8026E310, 19CBF0 : EnemyCreateTargetList "create a target list for an enemy" : void : int targetSelectionFlags
+api : 8026E354, 19CC34 : InitTargetIterator   : void : void
+api : 8026E3A8, 19CC88 : SetOwnerTarget 	  : void : #actorID target, int partIndex
+api : 8026E414, 19CCF4 : ChooseNextTarget     : void : #iter "modes: Next, Prev, First, Last", {out} var hasNext
+% api : 8026E558 : TargetNeighbor? "seems broken, all modes are identical?" : void : #actorID, int mode "-1 | 0 | 1", {out} var result "0 = success | -1 = failure"
+api : 8026E864, 19D144 : GetTargetListLength  : void : {out} var length
+api : 8026E8AC, 19D18C : GetOwnerTarget       : void : {out} var actorID {outType=#actorID}, {out} var partIndex
+% 8026E914 -- get "short" battle[1A4], "byte" battle[1A6]
+api : 8026E974, 19D254 : GetPlayerActorID	  : void : {out} var actorID {outType=#actorID}
+% 8026E9A0 -- set "short" battle[1A4], "byte" battle[1A6]
+api : 8026E9FC, 19D2DC : GetDistanceToGoal "projected onto XZ plane" : void : #actorID, {out} var distance
+% 8026EA7C "20" used with 8026ED20 to make enemies flash when charged, among other things. not well understood.
+%8026EBF8  "9"
+% 8026ED20 "11" set part[0] flag 01000000 -- args : #actorID, partIndex, bool "1 = set, 0 = clear"  enabledDecorations?
+api : 8026EE88, 19D768 : AddActorDecoration : void : #actorID, int partIndex, int decorationIndex, #decoration
+api : 8026EF4C, 19D82C : RemoveActorDecoration : void : #actorID, int partIndex, int decorationIndex
+api : 8026EFF0, 19D8D0 : ModifyActorDecoration : void : #actorID, int partIndex, int decorationIndex, int sizeX, int sizeY, int offsetX, int offsetY
+api : 8026F0EC, 19D9CC : UseIdleAnimation  : void : #actorID, bool enabled "1 = animate using idle anims, 0 = anims are controlled through scripts"
+api : 8026F230, 19DB10 : GetStatusFlags    : void : #actorID, {out} var statusFlags
+api : 8026F44C, 19DD2C : RemovePlayerBuffs : void : #playerBuff
+api : 8026F470, 19DD50 : SetPartAlpha    : void : #actorID, int partIndex, int alpha "from transparent = 00 to opaque = FF"
+% 8026F60C : stores a byte at 800DC0FD -- used when aborting battles after SetBattleFlagBits " 00060000 .True "
+api : 8026F52C, 19DE0C : CreatePartShadow : void : #actorID, int partIndex
+api : 8026F59C, 19DE7C : RemovePartShadow : void : #actorID, int partIndex
+
+api : 8026F638, 19DF18 : SetBattleVar	: void : int index, int value
+api : 8026F694, 19DF74 : GetBattleVar	: void : int index, {out} var value
+api : 8026F6EC, 19DFCC : ResetAllActorSounds : void : #actorID
+api : 8026F740, 19E020 : SetActorSounds : void : #actorID, #actorSound, int value1, int value2 "only used by fields 0 and 1"
+api : 8026F838, 19E118 : ResetActorSounds : void : #actorID, #actorSound
+api : 8026FA00, 19E2E0 : SetPartSounds : void : #actorID, int partIndex, #actorSound "0-5", int value1, int value2 "only used by fields 0 and 1"
+api : 8026FB20, 19E400 : SetActorType : void : #actorID, int actorType "from ActorTypes.xml"
+api : 8026FBB0, 19E490 : ShowShockEffect : void : #actorID
+api : 8026FC04, 19E4E4 : GetActorAttackBoost  : void : #actorID, {out} var value
+api : 8026FC6C, 19E54C : GetActorDefenseBoost : void : #actorID, {out} var value
+api : 8026FCD4, 19E5B4 : BoostAttack : void : #actorID, int amount "note: icons for amount > 3 does not display correctly"
+api : 80270174, 19EA54 : BoostDefense : void : #actorID, int amount
+api : 80270614, 19EEF4 : VanishActor : void : #actorID, int duration "turns"
+api : 8027095C, 19F23C : ElectrifyActor : void : #actorID, int duration "turns"
+api : 80270CA4, 19F584 : HealActor : void : #actorID, int amount, bool plural "used when healing multiple enemies"
+api : 8027114C, 19FA2C : WaitForBuffDone : void : void
+api : 80271160, 19FA40 : CopyBuffs : void : #actorID source, #actorID target
+% <-- end of file
+
+% start of file -->
+
+asm : 80271658, 19FF38 : dispatch_event_player "also kills running HandleEvent / TakeTurn scripts" : void : #event
+asm : 802716E4, 19FFC4 : dispatch_event_player_continue_turn "also kills running HandleEvent script" : void : #event
+asm : 80271754, 1A0034 : calc_player_test_enemy : #hitResult : void
+asm : 80271944, 1A0224 : calc_player_damage_enemy : #hitResult : void
+asm : 802731BC, 1A1A9C : dispatch_damage_event_player : void : int damageAmount, #event, bool stopMotion
+asm : 8027337C, 1A1C5C : dispatch_damage_event_player_0 "calls 8027337c with false for last arg" : void : int damageAmount, #event
+asm : 802733A8, 1A1C88 : dispatch_damage_event_player_1 "calls 8027337c with true for last arg" : void : int damageAmount, #event
+api : 802733C4, 1A1CA4 : GetMenuSelection : void : {out} var selectedMoveCategory, {out} var selectedItem {outType=#itemID}, {out} var selectedMove {outType=int} "out = moveID"
+
+api : 80273894, 1A2174 : PlayerFallToGoal "Similar to jump, but starts with zero initial velocity. Sets actor gravity to whatever value is needed to fulfill time constraint. Always plays landing dust effects." : void : int moveTime "frames; set to 0 to use player move speed"
+api : 80273B04, 1A23E4 : PlayerLandJump "Keep moving player along jump angle and velocity, completing when y = 0. Always plays landing dust effects. Use this to land after finishing a jump motion." : void : void
+api : 80273C64, 1A2544 : PlayerRunToGoal "Move to goal pos in xz plane. Uses player footstep sounds (IDs 141 & 142)." : void : int moveTime "set to 0 to use player move speed"
+api : 80273EFC, 1A27DC : CancelablePlayerRunToGoal "Move to goal pos in xz plane. The player can press A to cancel the motion before it completes.  Uses player footstep sounds (IDs 141 & 142)."	: void : int moveTime "frames; set to 0 to use player move speed", {out} var skipped
+
+api : 80274234, 1A2B14 : GetPlayerHP : void : {out} var value
+api : 80274260, 1A2B40 : PlayerDamageEnemy : void : {out} var retVal {outType=#hitResult}, #damageType, int suppressEventFlags, int status, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 802744A0, 1A2D80 : PlayerPowerBounceEnemy : void : {out} var retVal {outType=#hitResult}, #damageType, int suppressEventFlags, int status, int damageAmount, int powerBounceCounter, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 802746F0, 1A2FD0 : PlayerTestEnemy : void : {out} var retVal {outType=#hitResult}, #damageType, int suppressEventFlags, int status, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 8027491C, 1A31FC : DispatchDamagePlayerEvent : void : int damageAmount, #event
+api : 80274978, 1A3258 : EnablePlayerBlur "motion blur" : void : int enabled "sometimes -1, purpose unknown"
+
+api : 80276EB4, 1A5794 : DidActionSucceed "check whether the last action command executed correctly" : void :  {out} var success {outType=bool} ">0 when successful, 0 when failed"
+asm : 80276F8C, 1A586C : dispatch_event_general "not widely-used, delegates to dispatch_event_actor/player/partner" : void : actor*, #event
+asm : 80277004, 1A58E4 : play_hit_sound : void : A0 actor* source, A1 float x, A2 float y, A3 float z, SP[10] #hitSound sound "0-5"
+asm : 80277160, 1A5A40 : dispatch_event_actor "also kills running HandleEvent / TakeTurn scripts" : void : actor*, #event
+asm : 802771F8, 1A5AD8 : calc_enemy_test_target : #hitResult : void
+asm : 8027742C, 1A5D0C : calc_enemy_damage_target : #hitResult : actor*
+asm : 802786D4, 1A6FB4 : dispatch_damage_event_actor : void : actor*, int damageAmount, #event, bool stopMotion
+asm : 802788F8, 1A71D8 : dispatch_damage_event_actor_0 "calls 8027337c with false for last arg" : void : actor*, int damageAmount, #event
+asm : 80278914, 1A71F4 : dispatch_damage_event_actor_1 "calls 8027337c with true for last arg" : void : actor*, int damageAmount, #event
+api : 80278930, 1A7210 : BindTakeTurn "binds a script to execute when their turn begins" : void : #actorID, $Script {name=TakeTurn}
+api : 802789A4, 1A7284 : PauseTakeTurn : void : #actorID
+api : 80278A1C, 1A72FC : ResumeTakeTurn : void : #actorID
+api : 80278A94, 1A7374 : BindIdle "binds a script to execute while idle -- goombas shuffling back and forth, etc" : void : #actorID, $Script {name=Idle}
+api : 80278B4C, 1A742C : EnableIdleScript : void : #actorID, int mode "0 = pause | 1 = resume | -1 = reset "
+api : 80278C20, 1A7500 : BindHandleEvent "binds a script to respond to battle events" : void : #actorID, $Script {name=HandleEvent}
+api : 80278C94, 1A7574 : BindNextTurn "binds a script to the start/end of player/enemy turns, use GetBattlePhase in the script to discriminate among them" : void : #actorID, $Script {name=NextTurn}
+% Movement functions
+api : 80278D08, 1A75E8 : JumpToGoal	: void : #actorID, int moveTime "set to 0 to use actor move speed", bool useJumpAnims "ie, those set by SetJumpAnimations", bool makeDustEffects "on landing", bool playJumpSounds "uses default sound from actor type data"
+api : 8027910C, 1A79EC : IdleJumpToGoal "similar to standard jump, but uses idle speed and goal instead" : void ...
+	: #actorID, int moveTime, int "ignored", bool drawLandEffects ...
+	: #actorID, int moveTime, int "ignored" % probably bugged, should be above
+% 80279420 jump : JumpToGoalSimple2 : void : actorID, int moveTime "set to 0 to use actor move speed" -- plays default sounds and dust effects
+api : 80279728, 1A8008 : JumpWithBounce "similar to standard jump, with an added bounce afterward with adjustable height." : void : #actorID, int moveTime "frames; set to 0 to use actor move speed", float bounceDivisor "bounce velocity = jump velocity / this factor -- (note: only valid for positive values)"
+api : 80279AD4, 1A83B4 : LandJump "Keep moving actor along jump angle and velocity, completing when y = 0. Always plays landing dust effects. Use this to land after finishing a jump motion." : void : #actorID
+api : 80279BEC, 1A84CC : FallToGoal "Similar to jump, but starts with zero initial velocity. Sets actor gravity to whatever value is needed to fulfill time constraint. Always plays landing dust effects." : void : #actorID, int moveTime "frames; set to 0 to use actor move speed"
+api : 80279E64, 1A8744 : RunToGoal "Move to goal pos in xz plane. Uses footstep sounds from actor type." : void ...
+	: #actorID, int moveTime "set to 0 to use actor move speed", bool drawDustEffects "bigger when move speed >= 4.0" ...
+	: #actorID, int moveTime "set to 0 to use actor move speed"
+
+api : 8027A264, 1A8B44 : IdleRunToGoal "Move an actor to idle goal pos the xz plane using idle speed. Plays movement dust effects, but no footstep sounds." : void : #actorID, int moveTime "set to 0 to use actor idle speed"
+
+api : 8027A4E4, 1A8DC4 : JumpPartTo "Move an actor part in a parabolic arc to a point. Last argument often (erroneously) omitted." : void ...
+	: #actorID, int partIndex, int x, int y, int z, int moveTime "set to 0 to use part move speed", bool drawLandEffects ...
+	: #actorID, int partIndex, int x, int y, int z, int moveTime "set to 0 to use part move speed"
+api : 8027A854, 1A9134 : FallPartTo "Similar to jump, but starts with zero initial velocity. Sets actor part gravity to whatever value is needed to fulfill time constraint. Always plays landing dust effects." : void : #actorID, int partIndex, int x, int y, int z, int moveTime "set to 0 to use part move speed"
+
+api : 8027AB5C, 1A943C : {warning=unused} LandJumpPart "Keep moving an actor part along jump angle and velocity, completing when y = 0. Always plays landing dust effects. Use this to land after finishing a jump motion." : void : #actorID, int partIndex
+
+api : 8027ACAC, 1A958C : RunPartTo "Move an actor part at a uniform velocity between starting position and given position. Optionally generate dust effects as the part 'runs' along the ground." : void : #actorID, int partIndex, int posX, int posY, int posZ, bool drawDustEffects "bigger when move speed >= 4.0"
+
+asm : 8027B0DC, 1A99BC : update_lerp_battle "almost certainly a duplicate of 8002A3B4 from the shared library" : float : #easing, float start, float end, int elapsed, int duration
+
+api : 8027B624, 1A9F04 : FlyToGoal "Move an actor by interpolating position along each axis between starting position and goal position. Different easing types are available and a sinsoidal arc may be added to the height for 'swooping' or 'leaping' motions." : void : #actorID, int duration "frames; set to 0 to use actor move speed", int arcHeight "offset height over fly length by a sinusoidal arc, use 0 for none, can be negative", #easing "same as for lerps"
+api : 8027BBB8, 1AA498 : IdleFlyToGoal "Move an actor by interpolating position along each axis between starting position and idle goal position. Different easing types are available and a sinsoidal arc may be added to the height for 'swooping' or 'leaping' motions." : void : #actorID, int duration "frames; set to 0 to use actor idle move speed", int arcHeight "offset height over fly length by a sinusoidal arc, use 0 for none, can be negative", #easing "same as for lerps"
+
+api : 8027BF38, 1AA818 : FlyPartTo "Move an actor part by interpolating position along each axis between starting position and given position. Different easing types are available and a sinsoidal arc may be added to the height for 'swooping' or 'leaping' motions." : void : #actorID, int partIndex, int posX, int posY, int posZ, int duration "frames; set to 0 to use part move speed", int arcHeight "offset height over fly length by a sinusoidal arc, use 0 for none, can be negative", #easing "same as for lerps"
+
+api : 8027C4E0, 1AADC0 : GetLastEvent : void : #actorID, {out} var eventType {outType=#event}
+api : 8027C548, 1AAE28 : SetTargetActor "sets attack target of one actor to another" : void : #actorID attacker, #actorID defender
+api : 8027C5C8, 1AAEA8 : SetEnemyHP : void : #actorID, int newHP
+api : 8027C6A0, 1AAF80 : GetActorHP : void : #actorID, {out} var curHP
+api : 8027C748, 1AB028 : GetEnemyMaxHP : void : #actorID, {out} var maxHP
+api : 8027C7B0, 1AB090 : RemoveActor "adds coin reward, but not star points" : void : #actorID
+api : 8027C8A4, 1AB184 : DropStarPoints	"causes star points to spew out and adds them to battle reward" : void : #actorID
+api : 8027CA74, 1AB354 : SetDefenseTable : void : #actorID, int partIndex, $DefenseTable
+api : 8027CB08, 1AB3E8 : SetStatusTable : void : #actorID, $StatusTable
+api : 8027CB7C, 1AB45C : SetIdleAnimations : void : #actorID, int partIndex, $IdleAnimations
+% 8027CC10 -- unused & broken; it does nothing
+api : 8027CCB4, 1AB594 : EnemyDamageTarget "used to damage Mario/partner/sometimes other enemies" : void : #actorID sourceActor, {out} var retVal {outType=#hitResult}, #damageType, int suppressEventFlags, int status, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 8027CED4, 1AB7B4 : EnemyFollowupAfflictTarget "unused. tries to afflict a status after an attack, can be used for extra chances?" : void : #actorID, {out} var retVal {outType=#hitResult}
+api : 8027CFB8, 1AB898 : EnemyTestTarget "check whether an attack on Mario/partner should hit" : void : #actorID sourceActor, {out} var retVal {outType=#hitResult}, #damageType, int status, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 8027D1BC, 1ABA9C : DispatchDamageEvent : void : #actorID, int damageAmount, #event
+api : 8027D264, 1ABB44 : DispatchEvent : void : #actorID, #event
+% 8027D2D8 : ???    :   actorID     % delegates to func_80266ADC, which sets flag 00080000 and sets "byte" actor[206] = FF
+% 8027D32C : ???    :   actorID     % delegates to func_80266AF8, which clears flag 00080000 and sets "byte" actor[206] = 0
+api : 8027D380, 1ABC60 : SetTargetOffset "more commonly used variant of 8026B0A0, works on any actor" : void : #actorID, int partIndex, int offsetX, int offsetY
+% 8027D434 : ???    :   actorID, partIndex, int -- sets part[70]
+% 8027D4C8 : ???    :   actorID, partIndex, int, int -- sets part[75/76]
+api : 8027D57C, 1ABE5C : EnableActorBlur  : void : #actorID, int enabled "sometimes -1, unsure why"
+% 8027d628
+api : 8027D67C, 1ABF5C : AfflictActor "force an actor to receive a status effect" : void : #actorID, #status, int duration "turns"
+% 8027d75c gets actor[208]
+api : 8027D7C4, 1AC0A4 : GetEncounterState "from encounter_status" : void : {out} int state
+api : 8027D7F0, 1AC0D0 : YieldTurn : void : void % Sets battle[0] bit 00200000
+api : 8027D810, 1AC0F0 : SetActorSize "note: ignores args = -250000000`" : void : #actorID, int sizeX {ignore=F1194D80}, int sizeY {ignore=F1194D80}
+api : 8027D8E0, 1AC1C0 : GetActorSize : void : #actorID, {out} var sizeX, {out} var sizeY
+api : 8027D970, 1AC250 : SetPartSize "note: ignores args = -250000000`" : void : #actorID, int partIndex, int sizeX {ignore=F1194D80}, int sizeY {ignore=F1194D80}
+api : 8027DA68, 1AC348 : GetOriginalActorType "type from static data" : void : #actorID, {out} var type
+api : 8027DAD4, 1AC3B4 : GetCurrentActorType : void : #actorID, {out} var type
+api : 8027DB3C, 1AC41C : GetLastDamage : void : #actorID, {out} var damageTaken
+api : 8027DBA4, 1AC484 : EnableActorGlow  : void : #actorID, bool enabled
+api : 8027DC68, 1AC548 : WasStatusInflicted : void : #actorID {warning=unused}, {out} var
+api : 8027DCBC, 1AC59C : CopyStatusEffects : void : #actorID source, #actorID target
+api : 8027DDA0, 1AC680 : ClearStatusEffects "remove all buffs/debuffs" : void : #actorID
+% <-- end of file
+
+% start of file -->
+asm : 8027DE80, 1AC760 : dispatch_event_partner "also kills running HandleEvent / TakeTurn scripts" : void : #event
+asm : 8027DF0C, 1AC7EC : dispatch_event_partner_continue_turn "also kills running HandleEvent script" : void : #event
+asm : 8027DF7C, 1AC85C : calc_partner_test_enemy : #hitResult : void
+asm : 8027E328, 1ACC08 : calc_partner_damage_enemy : #hitResult : void
+asm : 8027F9CC, 1AE2AC : dispatch_damage_event_partner : void : int damageAmount, #event, bool stopMotion
+asm : 8027FB80, 1AE460 : dispatch_damage_event_partner_0 "calls 8027F9CC with false for last arg" : void : int damageAmount, #event
+asm : 8027FB9C, 1AE47C : dispatch_damage_event_partner_1 "calls 8027F9CC with true for last arg" : void : int damageAmount, #event
+api : 8027FBB8, 1AE498 : MakeOwnerTargetIndex "force the script owner to target given actor in its target list, returns -1 if no targetable actor is at the given index" : void : #actorID "unused", {out} var index
+% 8027FC90
+api : 8027FD48, 1AE628 : GetActorLevel "gets the level of an enemy or the rank of a partner" : void : #actorID, {out} var level
+api : 8027FDB4, 1AE694 : PartnerDamageEnemy : void : {out} var retVal {outType=#hitResult}, #damageType, int suppressEventFlags, int status, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 80280004, 1AE8E4 : PartnerAfflictEnemy : void : {out} var retVal {outType=#hitResult}, #damageType, int suppressEventFlags, int status, int statusChance, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 80280270, 1AEB50 : PartnerPowerBounceEnemy : void : {out} var retVal {outType=#hitResult}, #damageType, int suppressEventFlags, int status, int damageAmount, int powerBounceCounter, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+api : 802804D0, 1AEDB0 : PartnerTestEnemy "used by partner moves to check whether attacks will hit enemies" : void : {out} var retVal {outType=#hitResult}, #damageType, int suppressEventFlags, int status, int damageAmount, {raw} int battleFlagsModifier "0, 10, 20, 30, 40, 80, 200 are valid"
+
+api : 802807A8, 1AF088 : DeletePartner "delete the partner actor" : void : void
+api : 80280840, 1AF120 : GetDamageIntensity : Var[0] int intensity "based on most recent battle damage: 0-3 dmg --> 0, 4-6 dmg --> 1, 7-9 dmg --> 2, 10+ dmg --> 3" : void
+api : 80280880, 1AF160 : {warning=internal} ActorAddMovePos : void : actor*, float x, float y, float z
+% <-- end of file
+
+% start of file -->
+api : 80280950, 1AF230 : LoadStarPowerScript : Var[0] int starPowerScript, Var[1] int success "always 1" : void
+% <-- end of file
+
+asm : 802A1C54, 4169E4 : draw_battle_wheel : void : void
+
+asm : 802A5818, 41A5A8 : can_switch_to_player : bool : void
+asm : 802A5988, 41A718 : update_player_menu : void : void
+asm : 802A81C8, 41CF58 : update_partner_menu : void : void
+asm : 802AA688, 41F418 : update_targeting_enemies : void : void
+
+% 802a11b0 draw/update item/partner/etc submenu?
+
+scr : 80284EBC, 1B379C : {warning=internal} PlayerScriptDispatcher	: ??? : ???
+scr : 80285010, 1B38F0 : {warning=internal} PeachScriptDispatcher	: ??? : ???
+
+scr : 8028505C, 1B393C : {warning=internal} ExecutePlayerAction : ??? : ???
+scr : 80285174, 1B3A54 : {warning=internal} ExecutePeachAction	: ??? : ???
+scr : 802852D4, 1B3BB4 : {warning=internal} HandleEvent_Player	: ??? : ???
+
+scr : 80280A34, 1AF314 : BtlPutPartnerAway	: ??? : ???
+scr : 80280B6C, 1AF44C : BtlBringPartnerOut	: ??? : ???
+
+scr : 80284A20, 1B3300 : {warning=internal} {stub} MarioTakeTurn : void : void % does nothing
+scr : 80284A30, 1B3310 : {warning=internal} {stub} PeachTakeTurn : void : void % does nothing
+
+scr : 80284A40, 1B3320 : MarioEnterStage "player runs onto the stage, possibly trips" : ??? : ???
+scr : 80284D04, 1B35E4 : PeachEnterStage : ??? : ???
+
+scr : 802851FC, 1B3ADC : PlayerFirstStrike : ??? : ???
+scr : 802852B8, 1B3B98 : StartDefend : ??? : ???
+
+% scr : 80286194 : PlayerCelebrate	% player spins and calls ExitStage... but also takes damage? this is dispatched during phase 5...
+% scr : 80286228 : ExitStage		% celebrate and leave the stage -- also used for RunAwayStart sometimes (?)
+
+scr : 802868BC, 1B519C : RunAwayStart : ??? : ???
+scr : 80287078, 1B5958 : RunAwayFail  : ??? : ???		% falls down and brush dust off
+scr : 80287128, 1B5A08 : RunAwayReset : ??? : ???		% after fail, return to home positions
+
+scr : 802878D0, 1B61B0 : PlayEatFX : ??? : ???		% sounds and animation for player eating
+scr : 80287948, 1B6228 : PlayDrinkFX : ??? : ???		% sounds and animation for player drinking
+scr : 802879C0, 1B62A0 : UseLifeShroom : ??? : ???
+
+scr : 80288398, 1B6C78 : MerleeRunOut : ??? : ???		% "The spell's power has run out."
+scr : 80288400, 1B6CE0 : MerleeAttackBonus : ??? : ???
+scr : 8028870C, 1B6FEC : MerleeDefenseBonus : ??? : ???
+scr : 80288A58, 1B7338 : MerleeExpBonus : ??? : ???
+
+scr : 80288D64, 1B7644 : PlayerHappy : ??? : ???
+scr : 8028907C, 1B795C : DoDizzyAttack : ??? : ???
+scr : 80289110, 1B79F0 : RegainAbility : ??? : ???	% Get Jump/Hammer/Item back after losing it
+
+scr : 80293E40, 1C2720 : UseMystery : ??? : ???
+
+scr : 802945E0, 1C2EC0 : DoSleepHit : ??? : ???
+scr : 802945FC, 1C2EDC : DoDizzyHit : ??? : ???
+scr : 80294618, 1C2EF8 : DoParalyzeHit : ??? : ???
+scr : 80294634, 1C2F14 : DoPoisonHit : ??? : ???
+scr : 80294650, 1C2F30 : DoStopHit : ??? : ???
+scr : 8029466C, 1C2F4C : DoFreezeHit : ??? : ???
+scr : 802946B8, 1C2F98 : DoShinkHit : ??? : ???
+
+scr : 80298BF0, 1C74D0 : ForceNextTarget : ??? : ???
+
+scr : 80299044, 1C7924 : DoNormalHit	: ??? : int partIndex, int hurtAnim
+scr : 8029A0D0, 1C89B0 : DoBurnHit		: ??? : int partIndex, int burnHurtAnim, int burnDeathAnim
+scr : 8029A6FC, 1C8FDC : DoShockHit		: ??? : int partIndex, int hurtAnim
+scr : 8029AC70, 1C9550 : DoImmune		: ??? : int partIndex, int anim
+scr : 8029AEC0, 1C97A0 : DoDeath		: ??? : int partIndex, int burnDeathAnim
+scr : 8029AF08, 1C97E8 : {warning=internal} Collapse "causes actor to fall over as a flat sprite on death" : ??? : ???
+scr : 8029B22C, 1C9B0C : DoScareAway	: ??? : int partIndex, int runAnim, int hurtAnim
+scr : 8029B998, 1CA278 : DoSpinSmashHit	: ??? : int partIndex, int anim
+scr : 8029BD70, 1CA650 : DoJumpBack		: ??? : int partIndex, int anim
+scr : 8029BEB8, 1CA798 : DoReturnHome	: ??? : int partIndex, int runAnim
+scr : 8029BFA0, 1CA880 : DoRecover		: ??? : int partIndex, int idleAnim
+scr : 8029C37C, 1CAC5C : DoAirLift		: ??? : int partIndex, int struggleAnim
+scr : 8029C4A8, 1CAD88 : DoBlowAway		: ??? : int partIndex, int struggleAnim
+
+% rumble types
+scr : 802939C4, 1C22A4 : {warning=internal} Rumble_1 : ??? : ???
+scr : 80293A10, 1C22F0 : {warning=internal} Rumble_2 : ??? : ???
+scr : 80293A34, 1C2314 : {warning=internal} Rumble_3 : ??? : ???
+scr : 80293A58, 1C2338 : {warning=internal} Rumble_4 : ??? : ???
+scr : 80293A7C, 1C235C : {warning=internal} Rumble_5 : ??? : ???
+scr : 80293AA0, 1C2380 : {warning=internal} Rumble_6 : ??? : ???
+scr : 80293AC4, 1C23A4 : {warning=internal} Rumble_7 : ??? : ???			% used by cases 7-11
+scr : 80293AE8, 1C23C8 : {warning=internal} Rumble_Unused_1 : ??? : ???
+scr : 80293B0C, 1C23EC : {warning=internal} Rumble_Unused_2 : ??? : ???
+scr : 80293B30, 1C2410 : {warning=internal} Rumble_Unused_3 : ??? : ???
+scr : 80293B54, 1C2434 : {warning=internal} Rumble_Unused_4 : ??? : ???
+
+% cam presets
+scr : 80280E54, 1AF734 : {warning=internal} CamPreset_A : ??? : ???
+scr : 80280CE8, 1AF5C8 : {warning=internal} CamPreset_B : ??? : ???
+scr : 80280DAC, 1AF68C : {warning=internal} CamPreset_C : ??? : ???
+scr : 80280DC8, 1AF6A8 : {warning=internal} CamPreset_D : ??? : ???
+scr : 80280DE4, 1AF6C4 : {warning=internal} CamPreset_E : ??? : ???
+scr : 80280D04, 1AF5E4 : {warning=internal} CamPreset_F : ??? : ???
+scr : 80280D3C, 1AF61C : {warning=internal} CamPreset_G : ??? : ???
+scr : 80280D74, 1AF654 : {warning=internal} CamPreset_H : ??? : ???
+scr : 80280D58, 1AF638 : {warning=internal} CamPreset_I : ??? : ???
+scr : 80280E00, 1AF6E0 : {warning=internal} CamPreset_J : ??? : ???
+scr : 80280E1C, 1AF6FC : {warning=internal} CamPreset_K : ??? : ???
+scr : 80280E38, 1AF718 : {warning=internal} CamPreset_L : ??? : ???
+scr : 80280D20, 1AF600 : {warning=internal} CamPreset_M : ??? : ???
+scr : 80280D90, 1AF670 : {warning=internal} CamPreset_N : ??? : ???
