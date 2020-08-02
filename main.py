@@ -82,6 +82,10 @@ class GUI(QMainWindow):
 	def generate(self):
 		self.button_generate_objects.setEnabled(False)
 
+		# Copy original enum files to different directory
+		if not os.path.exists("./StarRod/MOD/globals_enum_original/"):
+			shutil.copytree("./StarRod/MOD/globals/enum/", "./StarRod/MOD/globals_enum_original/")
+
 		# Get data from dumped content
 		self.enums = retrieve_enums("./StarRod/MOD/globals_enum_original/")
 		retrieve_items()
@@ -126,22 +130,11 @@ class GUI(QMainWindow):
 			self.can_randomize = False
 			p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-DumpAssets", "-CopyAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 			display_text = False
-			i = 0
-			count = 4351
-			last_ratio = 0
 			while True:
 				line = p.stdout.readline().decode("utf-8")
 				text = line[2:].rstrip("\n").replace("> ", "")
 				if text.startswith("ERROR:"):
 					display_text = True
-				if len(text) > 1:
-					i += 1
-					ratio = 100 * i // count
-					if ratio != last_ratio:
-						last_ratio = ratio
-						self.update_log(f"{ratio}%")
-						if ratio == 99:
-							self.update_log("Finishing up...")
 				if len(text) > 1 and display_text:
 					self.update_log(text)
 				if "Creating mod directories..." in line:

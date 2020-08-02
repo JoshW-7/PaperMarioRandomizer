@@ -2,6 +2,7 @@
 .vscode
 __pycache__
 debug
+dump
 StarRod/MOD/audio
 StarRod/MOD/battle
 StarRod/MOD/editor
@@ -15,3 +16,4 @@ StarRod/MOD/res
 StarRod/MOD/sprite
 StarRod/MOD/strings
 StarRod/MOD/world
+*.z64
