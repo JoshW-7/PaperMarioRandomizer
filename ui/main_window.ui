@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../../../random_bag.ico</normaloff>../../../random_bag.ico</iconset>
+    <normaloff>icons/random_bag.ico</normaloff>icons/random_bag.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -107,7 +107,7 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../starrod.ico</normaloff>../../../starrod.ico</iconset>
+              <normaloff>icons/starrod.ico</normaloff>icons/starrod.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -133,7 +133,7 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../fireflower.ico</normaloff>../../../fireflower.ico</iconset>
+              <normaloff>icons/fireflower.ico</normaloff>icons/fireflower.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -159,7 +159,7 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../calculator.ico</normaloff>../../../calculator.ico</iconset>
+              <normaloff>icons/calculator.ico</normaloff>icons/calculator.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -547,7 +547,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../../random_bag.ico</normaloff>../../../random_bag.ico</iconset>
+          <normaloff>icons/random_bag.ico</normaloff>icons/random_bag.ico</iconset>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
