@@ -13,6 +13,7 @@
  - Smart Key Item randomization (implementing logic to prevent soft-locks)
  - Quality of Life options (Start with upgraded Hammer/Boots, Star Spirits, Partners, etc)
  - Graphics randomization
+ - Randomization stability (blacklisting certain maps and preventing crashes)
  
  
  
