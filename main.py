@@ -25,7 +25,7 @@ class GUI(QMainWindow):
 
 	def __init__(self):
 		super(GUI, self).__init__()
-		uic.loadUi(resource_path("ui/main_window.ui"), self)
+		uic.loadUi(resource_path("ui\\main_window.ui"), self)
 
 		# Actions
 		self.action_open.triggered.connect(self.open)
@@ -38,13 +38,16 @@ class GUI(QMainWindow):
 		self.button_randomize.clicked.connect(self.randomize)
 		self.button_compile_mod.clicked.connect(self.compile)
 
-		with open("./StarRod/cfg/main.cfg", "r") as file:
-			for line in file.readlines():
-				if "RomPath = " in line:
-					if "null" in line:
-						self.button_dump_rom.setEnabled(False)
-						self.button_generate_objects.setEnabled(False)
-						break
+		try:
+			with open("./StarRod/cfg/main.cfg", "r") as file:
+				for line in file.readlines():
+					if "RomPath = " in line:
+						if "null" in line:
+							self.button_dump_rom.setEnabled(False)
+							self.button_generate_objects.setEnabled(False)
+							break
+		except:
+			print("Could not open StarRod config file: main.cfg")
 
 		if "globals" in os.listdir("./StarRod/MOD/"):
 			self.button_dump_rom.setEnabled(False)

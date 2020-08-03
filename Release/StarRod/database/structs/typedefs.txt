@@ -1,0 +1,30 @@
+
+animID		uint
+stringID	uint
+modelID		uint
+colliderID	uint
+zoneID		uint
+entryID		uint
+
+displayList	uint
+
+% scripts
+var		uint
+fvar		uint
+bytecode	uint
+
+% vectors
+vec2f		float[2]
+vec3f		float[3]
+vec2d		int[2]
+vec3d		int[3]
+% vec2l		fixed[2]
+% vec3l		fixed[3]
+
+% matrices
+matrix3f	float[3][3]
+matrix4f	float[4][4]
+matrix3d	int[3][3]
+matrix4d	int[4][4]
+% matrix3s	short[3][3][2]
+% matrix4s	short[4][4][2]

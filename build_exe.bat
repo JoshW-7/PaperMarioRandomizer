@@ -1,0 +1,1 @@
+pipenv run pyinstaller PaperMarioRandomizer.spec --distpath "./Release"

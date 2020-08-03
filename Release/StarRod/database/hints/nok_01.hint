@@ -1,0 +1,7 @@
+
+% Chuck Quizmo
+add		80245FE8	IntTable
+newline	80245FE8	2
+name	80245FE8	QuizRequirements
+add		80245FA8	ByteTable
+name	80245FA8	QuizAnswers

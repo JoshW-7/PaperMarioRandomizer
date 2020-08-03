@@ -1,0 +1,4 @@
+
+802E38D8	multicoin_block_spawn_coin
+802E3F0C	item_block_spawn_item
+802E663C	hidden_panel_spawn_item

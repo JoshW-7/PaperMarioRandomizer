@@ -1,0 +1,88 @@
+
+add		802834D8	Actor
+name	802834D8	Player
+
+add		80281104	IntTable
+name	80281104	ActorTypeNameIDs
+size	80281104	350
+newline	80281104	8
+
+add		80281468	IntTable
+name	80281468	ActorTypeSoundTable
+size	80281468	1730
+newline	80281468	7
+
+add		80282B98	IntTable
+name	80282B98	ActorTypeTattleIDs
+size	80282B98	350
+newline	80282B98	8
+
+add		80282EE8	IntTable
+name	80282EE8	ActorTypeCamOffsets
+size	80282EE8	350
+newline	80282EE8	8
+
+% why doesnt this one work?
+add		80283500	PartsTable
+name	80283500	Mario_PartsTable
+size	80283500	24
+
+add		80284044	IntTable
+name	80284044	ActorTypeGroups
+size	80284044	30
+newline	80284044	4
+
+add		80283F10	IntTable
+name	80283F10	PartnerMoveTable
+size	80283F10	F0
+newline	80283F10	5
+
+add		80283420	DefenseTable
+name	80283420	Mario_DefenseTable
+
+% add		80244A50	Function
+add		80245AD0	Function
+add		8025E190	Function
+add		80255FE0	Function
+add		80268938	Function
+add		80268AF8	Function
+
+add		80283238	IdleAnimations
+name	80283238	Mario_IdleAnimations
+
+add		802832D4	IdleAnimations
+name	802832D4	Mario_IdleAnimations_Defend
+
+add		80283370	IdleAnimations
+name	80283370	Mario_IdleAnimations_OuttaSight
+
+add		8028340C	IdleAnimations
+name	8028340C	Peach_IdleAnimations
+
+add		80283770	IntTable
+name	80283770	StringIDs_Messages
+
+add		802838C4	IntTable
+name	802838C4	StringIDs_Actors
+
+add		80293B80	IntTable
+name	80293B80	ItemScriptItemIDs
+
+add		80293C04	IntTable
+name	80293C04	ItemScriptTable
+size	80293C04	200
+newline	80293C04	4
+
+add		80293E04	IntTable
+
+add		802944C0	IntTable
+name	802944C0	ActionCommandTable
+size	802944C0	120
+newline	802944C0	3
+
+add		802946E0	IntTable
+
+add		80293E80	IntTable
+name	80293E80	MoveScriptTable
+size	80293E80	310
+newline	80293E80	4

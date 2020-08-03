@@ -1,0 +1,19 @@
+type: rom
+size: 40
+fields:
+{
+%  pos	: type				: name			: options
+	10	: $MainScript		: MainScript
+	14	: $EntryList		: EntryList		: len=#EntryCount
+	18	: uint				: EntryCount
+	38	: uint				: Background
+	3C	: $Function			: MapTattle		% usually a string ID
+}
+print:
+{
+	field	: MainScript	: hex
+	field	: EntryList		: hex
+	field	: EntryCount	: decimal
+	field	: Background	: hex
+	field	: MapTattle		: hex
+}

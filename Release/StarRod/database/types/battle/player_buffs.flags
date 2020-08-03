@@ -1,0 +1,17 @@
+PlayerBuff	% namespace
+playerBuff	% library name
+false	% reversed
+
+% for use with RemovePlayerBuffs (func_8026F44C)
+
+0FFFFFFF = All
+00000001 = JumpCharge
+00000002 = HammerCharge
+00000008 = Stone
+00000010 = Hustle
+00000020 = Static
+00000040 = Transparent
+00000080 = CloudNine
+00000100 = TurboCharge
+00000200 = WaterBlock
+00010000 = PartnerGlowing

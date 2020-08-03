@@ -1,0 +1,28 @@
+#new:NpcSettings $NpcSettings_Goomba
+{
+00000000 00140017 00000000 00000000 $Script_NpcAI_80241820_kmr_09 80077F70 00000000 8007809C 
+00000000 00000000 00050000 
+}
+
+#new:Script $Script_NpcAI_Goomba
+{
+    0:  Call  DoBasicAI ( $AISettings_802417F0_kmr_09 )
+   10:  Return
+   18:  End
+}
+
+#new:AISettings $AISettings_Goomba
+{
+    1.5 % move speed
+    30` % move time
+    30` % wait time
+  130.0 % alert radius
+    0.0
+    1`
+    2.5 % chase speed
+    180`
+    3`
+  150.0 % chase radius
+    0.0
+    1`
+}

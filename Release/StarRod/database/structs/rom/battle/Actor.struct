@@ -1,0 +1,53 @@
+type: rom
+size: 28
+fields:
+{
+%  pos	: type				: name			: options
+	0	: uint				: Flags
+	5	: ubyte				: Index
+	6	: ubyte				: Level
+	7	: ubyte				: MaxHP
+	8	: ushort			: PartsCount
+	C	: $PartsTable		: PartsTable	: len=#PartsCount
+	10	: $Script			: Script		: name=Init
+	14	: $StatusTable		: StatusTable
+	18	: ubyte				: Escape
+	19	: ubyte				: AirLift
+	1A	: ubyte				: Hurricane
+	1B	: ubyte				: Item
+	1C	: ubyte				: UpAndAway
+	1D	: ubyte				: SpinSmash
+	1E	: ubyte				: PowerBounce
+	1F	: ubyte				: Coins
+	20	: ubyte[2]			: Size
+	22	: ubyte[2]			: HealthBar
+	24	: ubyte[2]			: StatusTurn
+	26	: ubyte[2]			: StatusIcon
+}
+print:
+{
+	comment	: "stats"
+	field	: Index			: hex
+	field	: Level			: decimal
+	field	: MaxHP			: decimal
+	field	: Coins			: decimal
+	field	: Flags			: hex
+	field	: StatusTable 	: hex
+	comment	: "ai"
+	field	: PartsCount 	: decimal
+	field	: PartsTable 	: hex
+	field	: Script 		: hex
+	comment	: "move effectiveness"
+	field	: Escape 		: decimal
+	field	: Item 			: decimal
+	field	: AirLift 		: decimal
+	field	: Hurricane 	: decimal	: "Bow's \"Spook\" as well"
+	field	: UpAndAway		: decimal
+	field	: PowerBounce 	: decimal
+	field	: SpinSmash		: decimal	: "weight (0-4)"
+	comment	: "ui positions"
+	field	: Size			: decimal	: "width height"
+	field	: HealthBar		: decimal	: "dx dy"
+	field	: StatusTurn	: decimal	: "dx dy"
+	field	: StatusIcon	: decimal	: "dx dy"
+}
