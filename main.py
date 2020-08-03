@@ -95,6 +95,8 @@ class GUI(QMainWindow):
 		self.map_scripts = []
 		item_counter = 1
 		song_counter = 1
+		sound_counter = 1
+		ambient_sound_counter = 1
 		for filename in os.listdir("./StarRod/MOD/map/src/"):
 			if filename.endswith(".mscr"):
 				m = MapScript("./StarRod/MOD/map/src/" + filename)
@@ -107,6 +109,14 @@ class GUI(QMainWindow):
 				# Overwrite all Songs with unique values
 				for enum_data in m.get_enums("Song"):
 					song_counter = m.replace_enum(enum_data, "Song", song_counter, self.enums)
+
+				# Overwrite all Sounds with unique values
+				for enum_data in m.get_enums("Sound"):
+					sound_counter = m.replace_enum(enum_data, "Sound", sound_counter, self.enums)
+
+				# Overwrite all Ambient Sounds with unique values
+				for enum_data in m.get_enums("AmbientSounds"):
+					sound_counter = m.replace_enum(enum_data, "AmbientSounds", ambient_sound_counter, self.enums)
 
 				self.map_scripts.append(m)
 
@@ -202,9 +212,17 @@ class GUI(QMainWindow):
 		if self.chk_music_loading_zone.isChecked():
 			randomize_enum(self.enums["Song"], item_types=None)
 
+		# Randomize Sounds
+		randomize_enum(self.enums["Sound"], item_types=None)
+
+		# Randomize Ambient Sounds
+		randomize_enum(self.enums["AmbientSounds"], item_types=None)
+
 		# Overwrite the /globals/enum files with any changes
 		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["Item"])
 		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["Song"])
+		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["Sound"])
+		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["AmbientSounds"])
 
 		# Create map patches for any map script that has been modified
 		for map_script in self.map_scripts:

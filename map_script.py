@@ -136,6 +136,28 @@ class MapScript:
 					if text in Maps.get_maps():
 						self.map_ascii[object_name] = text
 
+	def replace_entity(self, enum_data, new_entity_name, global_enums):
+		previous_name = enum_data["name"]
+		enum_data["name"] = new_entity_name
+
+		print(global_enums)
+
+		global_enums["Entity"]["str"][new_entity_name] = {
+			"previous_name": previous_name,
+			"value": global_enums["Entity"]["str"][previous_name]["value"]
+		}
+
+		line_to_edit = self.objects[enum_data["object_name"]]["lines"][enum_data["line_number"]]
+		line_to_edit = line_to_edit[0:enum_data["span"][0]] + enum_data["name"] + " " + line_to_edit[enum_data["span"][1]:]
+		self.objects[enum_data["object_name"]]["lines"][enum_data["line_number"]] = line_to_edit
+
+		enum_data["span"] = (
+			line_to_edit.find(f".{enum_data['type']}:{enum_data['name']}") + len(enum_data['type']) + 2,
+			line_to_edit.find(f".{enum_data['type']}:{enum_data['name']}") + len(enum_data['type']) + 2 + len(enum_data['type']) + 1,
+		)
+		self.altered = True
+		self.objects[enum_data["object_name"]]["altered"] = True
+
 	# Replace the specified item_type enums in this map script
 	def replace_enum(self, enum_data, item_type, counter, global_enums):
 		previous_name = enum_data["name"]
