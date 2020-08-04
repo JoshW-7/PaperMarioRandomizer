@@ -2,11 +2,10 @@
  A randomizer for Paper Mario 64 using Star Rod (a modding tool by Clover) behind the scenes.
  
  Functional Features:
- - Item randomization
- - Badge randomization
- - Key Item randomization
- - Song randomization
+ - Item/Badge/KeyItem randomization
+ - Song/Sound randomization
  - Loading Zone randomization (by all loading zones)
+ - Ability to select which maps are included in randomization
 
  Planned Features:
  - Loading Zone randomization (by area, e.g. only exits that lead to new areas would be randomized)
