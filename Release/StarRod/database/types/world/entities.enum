@@ -57,3 +57,27 @@ RedArrowSigns            = 802BCD9C
 
 Tweester                 = 802BCA74
 StarBoxLaucher           = 802BCB44
+
+/%
+Bonus Entities:
+802E9C8C = ShatteringHammer1Block
+802E9CB0 = ShatteringHammer2Block
+802E9CD4 = ShatteringHammer3Block
+802E9CF8 = ShatteringHammer1BlockTiny
+802E9D1C = ShatteringHammer2BlockTiny
+802E9D40 = ShatteringHammer3BlockTiny
+802E9D64 = ShatteringBrickBlock
+
+802EA0A0 = InactiveMultiTriggerBlock? (but its red?)
+802EA2BC = PushBlock
+
+802EA618 = VanishingYellowBlock1
+802EA63C = VanishingYellowBlock2
+802EA660 = VanishingRedBlock1
+
+802EA77C = crash
+802EA7BC = HealingBlockHitEffect
+802EA934 = SuperBlockHitEffect1
+802EA958 = RedSuperBock (no scripts)
+802EA97C = SuperBlockHitEffect2
+%/

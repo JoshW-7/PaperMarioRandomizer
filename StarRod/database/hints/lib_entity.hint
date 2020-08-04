@@ -103,6 +103,11 @@ name	802EA298	Entity_Hammer3BlockTiny
 size	802EA298	24
 newline	802EA298	5
 
+add 	802EA2BC	IntTable
+name	802EA2BC	Entity_PushBlock
+size	802EA2BC	24
+newline	802EA2BC	5
+
 add 	802EA2E0	IntTable
 name	802EA2E0	Entity_PowBlock
 size	802EA2E0	24

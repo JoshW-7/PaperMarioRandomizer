@@ -9,7 +9,7 @@ import threading
 import subprocess
 
 from PyQt5 import QtCore, QtGui, uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QCheckBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QCheckBox, QTableWidgetItem
 
 from utilities import resource_path
 from enums import retrieve_enums, overwrite_enum, randomize_enum
@@ -38,7 +38,11 @@ class GUI(QMainWindow):
 		self.button_randomize.clicked.connect(self.randomize)
 		self.button_compile_mod.clicked.connect(self.compile)
 
+		self.button_check_selected.clicked.connect(self.check_selected)
+		self.button_uncheck_selected.clicked.connect(self.uncheck_selected)
+
 		try:
+			rename_filepath = False
 			with open("./StarRod/cfg/main.cfg", "r") as file:
 				for line in file.readlines():
 					if "RomPath = " in line:
@@ -60,6 +64,22 @@ class GUI(QMainWindow):
 	def get_random_seed(self):
 		items = [random.choice([re.sub(r"\d+", "", item) for item in ITEMS if item_type(item) == "Item"]) for i in range(4)]
 		return "".join(items)
+
+	def check_selected(self, state):
+		for model_index in self.table_maps.selectionModel().selectedRows():
+			self.table_maps.itemFromIndex(model_index).setCheckState(2)
+
+	def uncheck_selected(self, state):
+		for model_index in self.table_maps.selectionModel().selectedRows():
+			self.table_maps.itemFromIndex(model_index).setCheckState(0)
+
+	def maps_selected(self):
+		checked_items = []
+		for i in range(self.table_maps.rowCount()):
+			if self.table_maps.item(i, 0).checkState() == 2:
+				checked_items.append(self.table_maps.item(i, 0))
+
+		return [MapScript.get(item.text().split("-")[0].replace(" ", "")) for item in checked_items]
 
 	def open(self):
 		options = QFileDialog.Options()
@@ -96,38 +116,22 @@ class GUI(QMainWindow):
 
 		# Generate MapScript objects for each .msrc file that was dumped
 		self.map_scripts = []
-		item_counter = 1
-		song_counter = 1
-		sound_counter = 1
-		ambient_sound_counter = 1
 		for filename in os.listdir("./StarRod/MOD/map/src/"):
 			if filename.endswith(".mscr"):
 				m = MapScript("./StarRod/MOD/map/src/" + filename)
 				self.update_log(f"Generating: {m}")
-
-				# Overwrite all Items with unique values
-				for enum_data in m.get_enums("Item"):
-					item_counter = m.replace_enum(enum_data, "Item", item_counter, self.enums)
-
-				# Overwrite all Songs with unique values
-				for enum_data in m.get_enums("Song"):
-					song_counter = m.replace_enum(enum_data, "Song", song_counter, self.enums)
-
-				# Overwrite all Sounds with unique values
-				for enum_data in m.get_enums("Sound"):
-					sound_counter = m.replace_enum(enum_data, "Sound", sound_counter, self.enums)
-
-				# Overwrite all Ambient Sounds with unique values
-				for enum_data in m.get_enums("AmbientSounds"):
-					sound_counter = m.replace_enum(enum_data, "AmbientSounds", ambient_sound_counter, self.enums)
-
 				self.map_scripts.append(m)
-
-		for map_script in self.map_scripts:
-			map_script.export_json()
 
 		self.update_log("Finished generating MapScript objects. Ready to randomize.")
 
+		# Add row for each map
+		for m in self.map_scripts:
+			self.table_maps.insertRow(self.table_maps.rowCount())
+			item = QTableWidgetItem(f"{m.filename} - {m.nickname}")
+			item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
+			item.setCheckState(QtCore.Qt.Checked)
+			self.table_maps.setItem(self.table_maps.rowCount()-1, 0, item)
+			
 		self.enable_widgets()
 		self.text_seed.setText(self.get_random_seed())
 
@@ -166,8 +170,50 @@ class GUI(QMainWindow):
 			self.button_generate_objects.setEnabled(True)
 
 	def randomize(self):
+		# Ensure fresh copy of dumped data
+		if os.path.exists("./StarRod/MOD/globals/"):
+			shutil.rmtree("./StarRod/MOD/globals/")
+		p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-CopyAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
+		display_text = True
+		while True:
+			line = p.stdout.readline().decode("utf-8")
+			text = line[2:].rstrip("\n").replace("> ", "")
+			if text.startswith("ERROR:"):
+				display_text = True
+			if len(text) > 1 and display_text:
+				self.update_log(text)
+			if "Creating mod directories..." in line:
+				break
+			QApplication.processEvents()
+
 		# Set the seed based on what's in the textbox
 		random.seed(a=self.text_seed.text(), version=2)
+
+		# Only randomize maps that have been selected, and kmr_03 must be included
+		maps = self.maps_selected()
+
+		counter = {
+			"item": 1,
+			"song": 1,
+			"sound": 1,
+			"ambient_sound": 1,
+		}
+		for m in maps:
+			# Overwrite all Items with unique values
+			for enum_data in m.get_enums("Item"):
+				counter["item"] = m.replace_enum(enum_data, "Item", counter["item"], self.enums)
+
+			# Overwrite all Songs with unique values
+			for enum_data in m.get_enums("Song"):
+				counter["song"] = m.replace_enum(enum_data, "Song", counter["song"], self.enums)
+
+			# Overwrite all Sounds with unique values
+			for enum_data in m.get_enums("Sound"):
+				counter["sound"] = m.replace_enum(enum_data, "Sound", counter["sound"], self.enums)
+
+			# Overwrite all Ambient Sounds with unique values
+			for enum_data in m.get_enums("AmbientSounds"):
+				counter["ambient_sound"] = m.replace_enum(enum_data, "AmbientSounds", counter["ambient_sound"], self.enums)
 
 		# Since we're starting in kmr_03 (skipping half the prologue or so), ensure story progress is set properly upon entering
 		# This assumes "InitialMap = kmr_03" and "InitialEntry = Entry2" in mod.cfg
@@ -182,12 +228,12 @@ class GUI(QMainWindow):
 		if self.chk_maps_loading_zone.isChecked():
 			# Get a list of all the exits in the game
 			all_exits = []
-			for m in self.map_scripts:
+			for m in maps:
 				all_exits.extend(m.get_exits())
 
 			# Shuffle the exits, then loop over all the maps, changing each exit it has by popping one from the list of all exits
 			random.shuffle(all_exits)
-			for m in self.map_scripts:
+			for m in maps:
 				for e in m.get_exits():
 					other_exit = all_exits.pop()
 					e["map"] = other_exit["map"]
@@ -213,13 +259,15 @@ class GUI(QMainWindow):
 
 		# Randomize Songs
 		if self.chk_music_loading_zone.isChecked():
-			randomize_enum(self.enums["Song"], item_types=None)
+			randomize_enum(self.enums["Song"], item_types=None, i_type="Song")
 
 		# Randomize Sounds
-		randomize_enum(self.enums["Sound"], item_types=None)
+		if self.chk_sounds.isChecked():
+			randomize_enum(self.enums["Sound"], item_types=None, i_type="Sound")
 
 		# Randomize Ambient Sounds
-		randomize_enum(self.enums["AmbientSounds"], item_types=None)
+		if self.chk_ambient_sounds.isChecked():
+			randomize_enum(self.enums["AmbientSounds"], item_types=None, i_type="AmbientSounds")
 
 		# Overwrite the /globals/enum files with any changes
 		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["Item"])
@@ -227,11 +275,21 @@ class GUI(QMainWindow):
 		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["Sound"])
 		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["AmbientSounds"])
 
+		# Delete any existing map patches
+		for filename in os.listdir("./StarRod/MOD/map/patch/"):
+			os.remove(f"./StarRod/MOD/map/patch/{filename}")
+
 		# Create map patches for any map script that has been modified
-		for map_script in self.map_scripts:
-			if map_script.altered:
-				self.update_log(f"Creating Map Patch: {map_script}")
-				map_script.create_mpat("./StarRod/MOD/map/patch/")
+		for m in maps:
+			if m.altered:
+				self.update_log(f"Creating Map Patch: {m}")
+				m.create_mpat("./StarRod/MOD/map/patch/")
+				m.export_json()
+
+		# Ensure kmr_03 gets a map script if it wasn't selected for randomization (as it's the entry point for other modifications)
+		if MapScript.get("kmr_03") not in maps:
+			MapScript.get("kmr_03").create_mpat("./StarRod/MOD/map/patch/")
+			MapScript.get("kmr_03").export_json()
 
 		self.update_log("Finished Map Patches. Ready to compile mod.")
 		self.button_compile_mod.setEnabled(True)

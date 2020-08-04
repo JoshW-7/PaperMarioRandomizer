@@ -59,17 +59,17 @@ def overwrite_enum(filepath, enum):
             else:
                 file.write(f"{name} = {hex_str} % {data['previous_name']}\n")
 
-def randomize_enum(enum, item_types=["Item", "Badge", "KeyItem", "Coin"]):
+def randomize_enum(enum, item_types=["Item", "Badge", "KeyItem", "Coin"], i_type=None):
     if item_types != None:
         enum_data = enum["str"]
-        values = [data["value"] for name,data in enum_data.items() if item_type(data["previous_name"]) in item_types]
+        values = [data["value"] for name,data in enum_data.items() if item_type(data["previous_name"]) in item_types and name.startswith("Item_")]
         random.shuffle(values)
-        for name,data in [(n,d) for n,d in enum_data.items() if item_type(d["previous_name"]) in item_types]:
+        for name,data in [(n,d) for n,d in enum_data.items() if item_type(d["previous_name"]) in item_types and n.startswith("Item_")]:
             data["value"] = values.pop()
-    else:
+    elif i_type:
         enum_data = enum["str"]
-        values = [data["value"] for name,data in enum_data.items()]
+        values = [data["value"] for name,data in enum_data.items() if name.startswith(i_type)]
         random.shuffle(values)
-        for name,data in enum_data.items():
+        for name,data in [(n,d) for n,d in enum_data.items() if n.startswith(i_type)]:
             data["value"] = values.pop()
         

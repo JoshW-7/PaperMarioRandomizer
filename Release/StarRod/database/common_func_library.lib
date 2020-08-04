@@ -154,6 +154,7 @@ asm : 80038AFC, 013EFC : npc_do_world_collision "does traces along yaw, yaw +/- 
 asm : 8003900C, 01440C : npc_do_other_npc_collision "does collision with all other npcs" : void : npc*
 asm : 800392D8, 0146D8 : npc_do_player_collision : bool collided : npc*
 asm : 80039930, 014D30 : update_npcs : void : void
+asm : 80039FD0, 0153D0 : appendGfx_npc	: void : npc*
 asm : 8003A7F0, 015BF0 : render_npcs			: void : void
 asm : 8003AA54, 015E54 : npc_move_heading		: void : npc*, float speed, float yaw
 
@@ -164,7 +165,7 @@ asm : 8003ABFC, 015FFC : disable_npc_shadow		: void : npc*
 asm : 8003AD24, 016124 : enable_npc_blur		: void : npc*
 asm : 8003ADAC, 0161AC : disable_npc_blur		: void : npc*
 asm : 8003ADF8, 0161F8 : update_npc_blur		: void : npc*
-asm : 8003AE38, 016238 : render_npc_blur		: void : npc*
+asm : 8003AE38, 016238 : appedGfx_npc_blur		: void : npc*
 
 asm : 8003B340, 016740 : set_npc_yaw			: void : npc*, float angle
 asm : 8003E400, 019800 : clear_encounter_status	: void : void
@@ -185,8 +186,8 @@ asm : 8003ED68, 01A168 : get_enemy_safe 		: enemy* : #npcID
 asm : 8003EDF0, 01A1F0 : get_defeated			: bool : int mapID, int encounterID
 asm : 8003EE40, 01A240 : set_defeated			: void : int mapID, int encounterID
 
-api : 8003ef00 : FadeBackgroundToBlack : void : void
-api : 8003ef98 : UnfadeBackgroundFromBlack : void : void
+api : 8003EF00, 01A300 : FadeBackgroundToBlack : void : void
+api : 8003EF98, 01A398 : UnfadeBackgroundFromBlack : void : void
 
 api : 8003F398, 01A798 : GetCamLookAtObjVector	: Var[0] int x, Var[1] int y, Var[2] int z : void
 api : 8003F3F4, 01A7F4 : HasMerleeCasts			: Var[0] bool result : void
@@ -661,8 +662,8 @@ asm : 800E01A4, 079654 : enable_player_input		: int disableCount : void
 
 asm : 800E1138, 07A5E8 : render_player				: void : void
 asm : 800E1168, 07A618 : render_player_model		: void : void
-asm : 800E12F4, 07A7A4 : make_player_display_list	: void : void
-asm : 800E1704, 07ABB4 : make_spinning_player_display_list	: void : void % only used when speedy spinning
+asm : 800E12F4, 07A7A4 : appendGfx_player		: void : void
+asm : 800E1704, 07ABB4 : appendGfx_player_spin	: void : void % only used when speedy spinning
 
 asm : 800E1BC4, 07B074 : update_player_shadow "update shadow and floorBelow collider" : void : void
 
@@ -799,6 +800,9 @@ ROM:    A5DD0 -	   E79B0
 asm : 8010F6D0, 0A5DD0 : update_entities			: void : void
 asm : 8010FA98, 0A6198 : update_shadows				: void : void
 
+asm : 8011022C, 0A692C : update_entity_transform_matrix		: void : entity*
+asm : 80110374, 0A6A74 : update_shadow_transform_matrix : void : shadow*
+asm : 801104A4, 0A6BA4 : update_entity_inverse_rotation_matrix : void : entity*
 asm : 801105E8, 0A6CE8 : get_entity_by_index		: entity* : int index
 asm : 80110604, 0A6D04 : get_shadow_by_index		: shadow* : int index
 asm : 80110620, 0A6D20 : get_entity_list			: entity** : void
@@ -806,7 +810,6 @@ asm : 8011064C, 0A6D4C : get_shadow_list			: shadow** : void
 asm : 80110AAC, 0A71AC : test_player_entity_aabb	: bool intersects : entity* entity
 asm : 80110BB0, 0A72B0 : is_player_action_state		: bool : #actionStateID
 
-asm : 8011022C, 0A692C : update_entity_transform_matrix		: void : entity*
 asm : 801108B8, 0A6FB8 : entity_get_collision_flags "checks entity against objects the player is touching, hammering, etc." : int flags : entity*
 asm : 80110C14, 0A7314 : load_area_specific_entity_data		: void : void
 asm : 801118C4, 0A7FC4 : create_entity				: int entityIndex : static_entity_data* data, int x, int y, int z, int flags
@@ -826,6 +829,7 @@ asm : 801129D4, 0A90D4 : set_shadow_scale_peach : void : shadow*, float height
 
 asm : 80112E78, 0A9578 : step_current_game_mode		: void : void
 asm : 80112F58, 0A9658 : render_ui					: void : void
+asm : 80113090, 0A9790 : appendGfx_model : void : model*
 asm : 80114D6C, 0AB46C : load_tile_header			: void : char* textureName, int romOffset, int size
 asm : 80115B0C, 0AC20C : get_model_property			: int* : model_node* mdl, int property
 asm : 80115B44, 0AC244 : _load_model_textures "recursive part for load_model_textures" : void : model_node* mdl, int romOffset, int size
@@ -834,6 +838,7 @@ asm : 80115D44, 0AC444 : clear_model_data			: void : void
 asm : 80115FE8, 0AC6E8 : init_model_data			: void : void
 asm : 8011612C, 0AC82C : calculate_model_sizes		: void : void
 asm : 80116B90, 0AD290 : render_models				: void : void
+asm : 80117C94, 0AE394 : appendGfx_model_group : void : model*
 asm : 8011AD30, 0B1430 : get_model_from_list_index	: model* : int listIndex
 asm : 8011AD48, 0B1448 : load_data_for_models "loads textures and prepares transformations" : void : model_node* mdl "typically root", int romOffset, int size
 asm : 8011ADC8, 0B14C8 : load_model_transforms		: void : model_node* mdl, model_node* parent, matrix4f* mdlTxMtx, int treeDepth
@@ -854,8 +859,8 @@ asm : 8011BC34, 0B2334 : set_main_pan_v		: void : int pannerID, int amount
 asm : 8011BC4C, 0B234C : set_aux_pan_u		: void : int pannerID, int amount
 asm : 8011BC64, 0B2364 : set_aux_pan_v		: void : int pannerID, int amount
 
-asm : 8011be5c : set_background_color_blend : void : int R, int G, int B, int alpha "0-255 lerp amount"
-asm : 8011be80 : get_background_color_blend : void : int* out_R, int* out_G, int* out_B, int* out_alpha "0-255 lerp amount"
+asm : 8011BE5C, 0B255C : set_background_color_blend : void : int R, int G, int B, int alpha "0-255 lerp amount"
+asm : 8011BE80, 0B2580 : get_background_color_blend : void : int* out_R, int* out_G, int* out_B, int* out_alpha "0-255 lerp amount"
 
 asm : 8011D910, 0B4010 : queue_render_task			: render_task_entry* : render_task* task
 
@@ -906,7 +911,7 @@ asm : 80131A94, 0C8194 : make_item_entity_nodelay	: int itemEntityIndex : int it
 asm : 80131AC8, 0C81C8 : make_item_entity_delayed	: int itemEntityIndex : int itemID, float x, float y, float z, #itemSpawnMode, int pickupDelay "frames before available for pickup", var pickupVar
 asm : 80131B00, 0C8200 : init_got_item				: int itemEntityIndex : int iconID, int, int messageFlags "0 = item, 10 = \"1 coin\", 20 = \"3 star pieces\", ..."
 asm : 80131EEC, 0C85EC : update_item_entities : void : void
-asm : 801321A4, 0C88A4 : draw_item_entity : void : item_entity* item
+asm : 801321A4, 0C88A4 : appendGfx_item_entity : void : item_entity* item
 asm : 80132C80, 0C9380 : draw_item_entities				: void : void
 asm : 80132E54, 0C9554 : render_item_entities : void : void
 asm : 801230B0, 0B97B0 : stub_item_entity_nodraw : void : void

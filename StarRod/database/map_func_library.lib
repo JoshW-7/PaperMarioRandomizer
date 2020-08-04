@@ -19,8 +19,8 @@ api : 80281CAC, 7E2B2C : MakeDoorAdvanced		: void : int, $Script {name=OpenDoor}
 % 802831DC	:	int, int 	% *FLOAT  ??? involves action state -- might have something to do with PushBlocks
 api : 802831DC, 7E405C : CheckActionState "Checks whether current action state equals test state." : void : {out} var result {outType=bool}, #actionStateID "uses get_float_variable for some reason"
 api : 802832E0, 7E4160 : CreatePushBlockGrid	: void : int blockSystemID, int sizeNx, int sizeNz, int centerX, int centerY, int centerZ, ptr cellData "numX * numZ bytes, use 0 for auto-allocation"
-api : 8028347C, 7E42FC : SetPushBlock			: void : int blockSystemID, int gridX, int gridZ, int type "0 = no, 1 = block, 2 = occlusion"
-api : 802835C0, 7E4440 : GetPushBlock			: void : int blockSystemID, int gridX, int gridZ, int* outType "0 = no, 1 = block, 2 = occlusion"
+api : 8028347C, 7E42FC : SetPushBlock			: void : int blockSystemID, int gridX, int gridZ, int type "0 = no, 1 = block, 2 = obstruction"
+api : 802835C0, 7E4440 : GetPushBlock			: void : int blockSystemID, int gridX, int gridZ, int* outType "0 = no, 1 = block, 2 = obstruction"
 api : 802836B8, 7E4538 : GetGridIndexFromPos  	: void : int blockSystemID, int posX, int posY, int posZ, int* outGridX, int* outGridZ
 api : 802837AC, 7E462C : SetPushBlockFallEffect	: void : int blockSystemID, $Function
 % <-- end of file
