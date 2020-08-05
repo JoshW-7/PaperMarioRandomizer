@@ -51,7 +51,7 @@ class GUI(QMainWindow):
 			os.mkdir("./dump")
 
 		if not os.path.exists("./debug"):
-			os.mkdir("./debug/map_script_objects")
+			os.mkdir("./debug/")
 
 		if not os.path.exists("./debug/map_script_objects"):
 			os.mkdir("./debug/map_script_objects")
