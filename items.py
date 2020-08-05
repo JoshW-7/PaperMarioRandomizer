@@ -3,7 +3,7 @@
 ITEMS = {}
 def retrieve_items():
     global ITEMS
-    with open("./StarRod/MOD/globals/ItemTable.csv", "r") as file:
+    with open("./mod/globals/ItemTable.csv", "r") as file:
         lines = file.readlines()
         columns = {name.replace("\n", ""): i for i,name in enumerate(lines[0].split(","))}
         for line in lines[1:]:

@@ -9,6 +9,7 @@ from maps import Maps
 
 class MapScript:
 
+	# Dictionary to contain all MapScript instances, with keys being the filename (e.g. mac_00)
 	scripts = {}
 
 	def __init__(self, filepath):
@@ -16,7 +17,7 @@ class MapScript:
 		self.filename = self.filepath.split('/')[-1].split('.')[0]
 		self.nickname = ""
 
-		xml_tree = ET.parse(filepath.split(self.filename)[0] + "../MapTable.xml")
+		xml_tree = ET.parse(self.filepath.split(self.filename)[0] + "../MapTable.xml")
 		root = xml_tree.getroot()
 		done = False
 		for child in root.iter():
@@ -139,8 +140,6 @@ class MapScript:
 	def replace_entity(self, enum_data, new_entity_name, global_enums):
 		previous_name = enum_data["name"]
 		enum_data["name"] = new_entity_name
-
-		print(global_enums)
 
 		global_enums["Entity"]["str"][new_entity_name] = {
 			"previous_name": previous_name,

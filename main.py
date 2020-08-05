@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import time
+import json
 import random
 import psutil
 import shutil
@@ -15,6 +16,7 @@ from utilities import resource_path
 from enums import retrieve_enums, overwrite_enum, randomize_enum
 from items import ITEMS, retrieve_items, item_type, item_value
 from maps import Maps
+from mod_cfg import mod_cfg_lines
 
 from map_script import MapScript
 
@@ -41,19 +43,52 @@ class GUI(QMainWindow):
 		self.button_check_selected.clicked.connect(self.check_selected)
 		self.button_uncheck_selected.clicked.connect(self.uncheck_selected)
 
-		try:
-			rename_filepath = False
-			with open("./StarRod/cfg/main.cfg", "r") as file:
-				for line in file.readlines():
-					if "RomPath = " in line:
-						if "null" in line:
-							self.button_dump_rom.setEnabled(False)
-							self.button_generate_objects.setEnabled(False)
-							break
-		except:
-			print("Could not open StarRod config file: main.cfg")
+		# Ensure proper folder structures
+		if not os.path.exists("./mod"):
+			os.mkdir("./mod")
 
-		if "globals" in os.listdir("./StarRod/MOD/"):
+		if not os.path.exists("./dump"):
+			os.mkdir("./dump")
+
+		if not os.path.exists("./debug"):
+			os.mkdir("./debug/map_script_objects")
+
+		if not os.path.exists("./debug/map_script_objects"):
+			os.mkdir("./debug/map_script_objects")
+
+
+		# Only overwrite mod.cfg if it was deleted
+		if not os.path.isfile("./mod/mod.cfg"):
+			with open("./mod/mod.cfg", "w") as file:
+				for line in mod_cfg_lines:
+					file.write(line + "\n")
+
+		# Only allow dumping ROM if the rom path isn't configured yet
+		with open("./StarRod/cfg/main.cfg", "r") as file:
+			for line in file.readlines():
+				if "RomPath = " in line:
+					if "null" in line:
+						self.button_dump_rom.setEnabled(False)
+						self.button_generate_objects.setEnabled(False)
+						break
+
+		# Open the configuration file and prompt user to select a ROM if it isn't already configured
+		with open("config.json", "r") as file:
+			self.config = json.load(file)
+		if self.config["rom"] == None:
+			self.open()
+
+		# Overwrite StarRod main.cfg with mod and rom paths
+		with open("./StarRod/cfg/main.cfg", "r") as file:
+			lines = file.readlines()
+			for i,line in enumerate(lines):
+				if "RomPath = " in line:
+					romname = self.config["rom"]
+					lines[i] = f"RomPath = {os.path.abspath(f'./dump/{romname}')}\n"
+				elif "ModPath = " in line:
+					lines[i] = f"ModPath = {os.path.abspath('./mod')}\n"
+
+		if "globals" in os.listdir("./mod"):
 			self.button_dump_rom.setEnabled(False)
 			self.button_generate_objects.setEnabled(True)
 		else:
@@ -85,15 +120,29 @@ class GUI(QMainWindow):
 		options = QFileDialog.Options()
 		filepath, _ = QFileDialog.getOpenFileName(self, "Choose ROM", "", "Vanilla PM64 ROM (*.z64)", options=options)
 		if filepath:
+			# Copy ROM to where we're running
+			if not os.path.exists("./dump"):
+				os.mkdir("./dump")
+			try:
+				shutil.copy(filepath, "./dump")
+			except shutil.SameFileError:
+				pass
+			filename = filepath.split("/")[-1]
+
 			with open("./StarRod/cfg/main.cfg", "r") as file:
 				lines = file.readlines()
 			for i,line in enumerate(lines):
 				if "RomPath = " in line:
-					lines[i] = "RomPath = " + filepath.replace("/", "\\") + "\n"
-					break
+					lines[i] = f"RomPath = {os.path.abspath(f'./dump/{filename}')}\n"
+				elif "ModPath = " in line:
+					lines[i] = f"ModPath = {os.path.abspath('./mod')}\n"
 			with open("./StarRod/cfg/main.cfg", "w") as file:
 				for line in lines:
 					file.write(line)
+
+			self.config["rom"] = filename
+			with open("config.json", "w") as file:
+				json.dump(self.config, file, indent=4)
 
 			self.button_dump_rom.setEnabled(True)
 
@@ -106,19 +155,19 @@ class GUI(QMainWindow):
 		self.button_generate_objects.setEnabled(False)
 
 		# Copy original enum files to different directory
-		if not os.path.exists("./StarRod/MOD/globals_enum_original/"):
-			shutil.copytree("./StarRod/MOD/globals/enum/", "./StarRod/MOD/globals_enum_original/")
+		if not os.path.exists("./mod/globals_enum_original/"):
+			shutil.copytree("./mod/globals/enum/", "./mod/globals_enum_original/")
 
 		# Get data from dumped content
-		self.enums = retrieve_enums("./StarRod/MOD/globals_enum_original/")
+		self.enums = retrieve_enums("./mod/globals_enum_original/")
 		retrieve_items()
 		Maps.retrieve_maps()
 
 		# Generate MapScript objects for each .msrc file that was dumped
 		self.map_scripts = []
-		for filename in os.listdir("./StarRod/MOD/map/src/"):
+		for filename in os.listdir("./mod/map/src/"):
 			if filename.endswith(".mscr"):
-				m = MapScript("./StarRod/MOD/map/src/" + filename)
+				m = MapScript("./mod/map/src/" + filename)
 				self.update_log(f"Generating: {m}")
 				self.map_scripts.append(m)
 
@@ -139,9 +188,9 @@ class GUI(QMainWindow):
 		self.button_dump_rom.setEnabled(False)
 
 		# Dump ROM assets
-		folders = os.listdir("./StarRod/MOD/")
+		folders = os.listdir("./mod/")
 		self.can_randomize = True
-		self.update_log("Dumping ROM...")
+		self.update_log("Dumping ROM (may take a couple minutes)...")
 		
 		if "globals" not in folders:
 			self.can_randomize = False
@@ -161,9 +210,9 @@ class GUI(QMainWindow):
 			self.update_log("Finished dumping ROM.")
 
 		# Copy original enum files to different directory
-		if os.path.exists("./StarRod/MOD/globals_enum_original/"):
-			shutil.rmtree("./StarRod/MOD/globals_enum_original/")
-		shutil.copytree("./StarRod/MOD/globals/enum/", "./StarRod/MOD/globals_enum_original/")
+		if os.path.exists("./mod/globals_enum_original/"):
+			shutil.rmtree("./mod/globals_enum_original/")
+		shutil.copytree("./mod/globals/enum/", "./mod/globals_enum_original/")
 
 		if self.can_randomize:
 			self.button_dump_rom.setEnabled(False)
@@ -171,8 +220,8 @@ class GUI(QMainWindow):
 
 	def randomize(self):
 		# Ensure fresh copy of dumped data
-		if os.path.exists("./StarRod/MOD/globals/"):
-			shutil.rmtree("./StarRod/MOD/globals/")
+		if os.path.exists("./mod/globals/"):
+			shutil.rmtree("./mod/globals/")
 		p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-CopyAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 		display_text = True
 		while True:
@@ -270,25 +319,25 @@ class GUI(QMainWindow):
 			randomize_enum(self.enums["AmbientSounds"], item_types=None, i_type="AmbientSounds")
 
 		# Overwrite the /globals/enum files with any changes
-		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["Item"])
-		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["Song"])
-		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["Sound"])
-		overwrite_enum("./StarRod/MOD/globals/enum/", self.enums["AmbientSounds"])
+		overwrite_enum("./mod/globals/enum/", self.enums["Item"])
+		overwrite_enum("./mod/globals/enum/", self.enums["Song"])
+		overwrite_enum("./mod/globals/enum/", self.enums["Sound"])
+		overwrite_enum("./mod/globals/enum/", self.enums["AmbientSounds"])
 
 		# Delete any existing map patches
-		for filename in os.listdir("./StarRod/MOD/map/patch/"):
-			os.remove(f"./StarRod/MOD/map/patch/{filename}")
+		for filename in os.listdir("./mod/map/patch/"):
+			os.remove(f"./mod/map/patch/{filename}")
 
 		# Create map patches for any map script that has been modified
 		for m in maps:
 			if m.altered:
 				self.update_log(f"Creating Map Patch: {m}")
-				m.create_mpat("./StarRod/MOD/map/patch/")
+				m.create_mpat("./mod/map/patch/")
 				m.export_json()
 
 		# Ensure kmr_03 gets a map script if it wasn't selected for randomization (as it's the entry point for other modifications)
 		if MapScript.get("kmr_03") not in maps:
-			MapScript.get("kmr_03").create_mpat("./StarRod/MOD/map/patch/")
+			MapScript.get("kmr_03").create_mpat("./mod/map/patch/")
 			MapScript.get("kmr_03").export_json()
 
 		self.update_log("Finished Map Patches. Ready to compile mod.")
@@ -317,12 +366,12 @@ class GUI(QMainWindow):
 		self.update_log("Finished compiling Mod")
 
 		# Once Star Rod is finished, copy the ROM from the /out folder to wherever the user wants it to be
-		files = os.listdir("./StarRod/MOD/out/")
+		files = os.listdir("./mod/out/")
 		if len(files) > 0:
 			options = QFileDialog.Options()
 			filepath, _ = QFileDialog.getSaveFileName(self, "Save Randomized ROM", f"Paper Mario Randomized (V{self.version})", "(*.z64)", options=options)
 			if filepath:
-				shutil.copyfile("./StarRod/MOD/out/" + files[0], filepath)
+				shutil.copyfile("./mod/out/" + files[0], filepath)
 
 	def enable_widgets(self, widget=None):
 		if widget in [self.button_dump_rom, self.button_generate_objects, self.button_compile_mod]:
