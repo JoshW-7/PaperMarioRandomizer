@@ -42,20 +42,17 @@ class GUI(QMainWindow):
 		self.button_uncheck_selected.clicked.connect(self.uncheck_selected)
 
 		# Checkbox Logic
-		def uncheck_other(state, other):
-			if state != 0:
-				other.setCheckState(0)
 		self.chk_loading_zone.stateChanged.connect(lambda state, other=self.chk_area:
-			uncheck_other(state, other)
+			other.setCheckState(0) if state != 0 else None
 		)
 		self.chk_area.stateChanged.connect(lambda state, other=self.chk_loading_zone:
-			uncheck_other(state, other)
+			other.setCheckState(0) if state != 0 else None
 		)
 		self.chk_music_loading_zone.stateChanged.connect(lambda state, other=self.chk_music_area:
-			uncheck_other(state, other)
+			other.setCheckState(0) if state != 0 else None
 		)
 		self.chk_music_area.stateChanged.connect(lambda state, other=self.chk_music_loading_zone:
-			uncheck_other(state, other)
+			other.setCheckState(0) if state != 0 else None
 		)
 
 		# Ensure proper folder structures
