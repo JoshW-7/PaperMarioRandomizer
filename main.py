@@ -282,6 +282,8 @@ class GUI(QMainWindow):
 		kmr_03.altered = True
 
 		# Randomize Loading Zones
+		# TODO: Add logic for contiguous loading zone randomization
+		# TODO: Add logic for loading zone randomization by area instead of by map (only area exits are randomized and only connect to other area exits)
 		if self.chk_maps_loading_zone.isChecked():
 			# Get a list of all the exits in the game
 			all_exits = []
