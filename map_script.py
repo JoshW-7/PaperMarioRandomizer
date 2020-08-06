@@ -47,6 +47,15 @@ class MapScript:
 	def get(cls, key):
 		return MapScript.scripts.get(key)
 
+	# Get a list of unique area names (e.g. "mac", "tik", "jan", etc), but only from the list of MapScript instances passed in
+	@classmethod
+	def get_areas(cls, maps):
+		unique_areas = set()
+		for name in [map_script.filename for map_script in maps]:
+			area = name.split("_")[0]
+			unique_areas.add(area)
+		return [area for area in unique_areas]
+
 	# Convenience method to access this MapScript like a dictionary
 	def __getitem__(self, object_name):
 		return self.objects.get(object_name)
