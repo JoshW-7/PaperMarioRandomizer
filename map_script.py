@@ -109,10 +109,14 @@ class MapScript:
 					matches.extend([m for m in re.finditer(r"GotoMap[ \t]+\([ \t]+([^ \t]*)[ \t]+([^ \t]*)[ \t]+\)[ \t]+\%[ \t]+([^ \t]*)", line)])
 					for match in matches:
 						ascii_object = match.group(1)
+
+						# This might be bad
+						# TODO: Make it not bad
 						try:
 							entry_index = int(match.group(2), 16)
 						except:
 							entry_index = 0
+
 						map_name = match.group(3)
 						if "MapExit" not in data:
 							data["MapExit"] = []
