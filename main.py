@@ -38,9 +38,25 @@ class GUI(QMainWindow):
 		self.button_generate_objects.setEnabled(True)
 		self.button_randomize.clicked.connect(self.randomize)
 		self.button_compile_mod.clicked.connect(self.compile)
-
 		self.button_check_selected.clicked.connect(self.check_selected)
 		self.button_uncheck_selected.clicked.connect(self.uncheck_selected)
+
+		# Checkbox Logic
+		def uncheck_other(state, other):
+			if state != 0:
+				other.setCheckState(0)
+		self.chk_loading_zone.stateChanged.connect(lambda state, other=self.chk_area:
+			uncheck_other(state, other)
+		)
+		self.chk_area.stateChanged.connect(lambda state, other=self.chk_loading_zone:
+			uncheck_other(state, other)
+		)
+		self.chk_music_loading_zone.stateChanged.connect(lambda state, other=self.chk_music_area:
+			uncheck_other(state, other)
+		)
+		self.chk_music_area.stateChanged.connect(lambda state, other=self.chk_music_loading_zone:
+			uncheck_other(state, other)
+		)
 
 		# Ensure proper folder structures
 		if not os.path.exists("./mod"):
@@ -284,7 +300,7 @@ class GUI(QMainWindow):
 		# Randomize Loading Zones
 		# TODO: Add logic for contiguous loading zone randomization
 		# TODO: Add logic for loading zone randomization by area instead of by map (only area exits are randomized and only connect to other area exits)
-		if self.chk_maps_loading_zone.isChecked():
+		if self.chk_loading_zone.isChecked():
 			# Get a list of all the exits in the game
 			all_exits = []
 			for m in maps:
@@ -302,7 +318,7 @@ class GUI(QMainWindow):
 				m.replace_map_ascii()
 
 		# Randomize Items (and coins)
-		# TODO: Include ability to include item shops
+		# TODO: Add ability to explicitly include/exclude item shops
 		# TODO: Prevent soft-lock scenarios like not being able to buy dried shroom & dusty hammer
 		# TODO: Fix shops so that they display the correct item description and possibly alter pricing
 		if self.chk_items.isChecked():
@@ -312,7 +328,7 @@ class GUI(QMainWindow):
 			randomize_enum(self.enums["Item"], item_types=item_types)
 
 		# Randomize Badges
-		# TODO: Include ability to include badge shops
+		# TODO: Add ability to explicitly include/exclude badge shops
 		if self.chk_badges.isChecked():
 			randomize_enum(self.enums["Item"], item_types=["Badge"])
 

@@ -496,17 +496,27 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QCheckBox" name="chk_maps_loading_zone">
+                 <widget class="QCheckBox" name="chk_loading_zone">
                   <property name="enabled">
                    <bool>false</bool>
                   </property>
                   <property name="text">
-                   <string>Exits</string>
+                   <string>Loading Zones</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="chk_maps_loading_zone_contiguous">
+                 <widget class="QCheckBox" name="chk_area">
+                  <property name="enabled">
+                   <bool>false</bool>
+                  </property>
+                  <property name="text">
+                   <string>Areas</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="chk_contiguous">
                   <property name="enabled">
                    <bool>false</bool>
                   </property>
