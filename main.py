@@ -55,11 +55,19 @@ class GUI(QMainWindow):
 			other.setCheckState(0) if state != 0 else None
 		)
 
+		# Open the configuration file and prompt user to select a ROM if it isn't already configured
+		with open("config.json", "r") as file:
+			self.config = json.load(file)
+		if self.config["rom"] == None:
+			self.open()
+
 		# Ensure proper folder structures
 		if not os.path.exists("./mod"):
 			os.mkdir("./mod")
 		if not os.path.exists("./dump"):
 			os.mkdir("./dump")
+			os.mkdir("./dump/dump")
+			self.open()
 		if not os.path.exists("./debug"):
 			os.mkdir("./debug/")
 		if not os.path.exists("./debug/map_script_objects"):
@@ -80,12 +88,6 @@ class GUI(QMainWindow):
 						self.button_generate_objects.setEnabled(False)
 						break
 
-		# Open the configuration file and prompt user to select a ROM if it isn't already configured
-		with open("config.json", "r") as file:
-			self.config = json.load(file)
-		if self.config["rom"] == None:
-			self.open()
-
 		# Overwrite StarRod main.cfg with mod and rom paths
 		with open("./StarRod/cfg/main.cfg", "r") as file:
 			lines = file.readlines()
@@ -97,7 +99,7 @@ class GUI(QMainWindow):
 					lines[i] = f"ModPath = {os.path.abspath('./mod')}\n"
 
 		# If it looks like the /mod folder is correct, enable generating objects
-		if "globals" in os.listdir("./mod"):
+		if "globals" in os.listdir("./dump/dump"):
 			self.button_dump_rom.setEnabled(False)
 			self.button_generate_objects.setEnabled(True)
 		else:
@@ -182,13 +184,14 @@ class GUI(QMainWindow):
 		self.button_dump_rom.setEnabled(False)
 
 		# Dump ROM assets
-		folders = os.listdir("./mod/")
+		folders = os.listdir("./dump/dump/")
 		self.can_randomize = True
 		self.update_log("Dumping ROM (may take a couple minutes)...")
+		self.update_log("If StarRod says it couldn't find a ROM, click OK. It's fine.")
 		
 		if "globals" not in folders:
 			self.can_randomize = False
-			p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-DumpAssets", "-CopyAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
+			p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-DumpAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 			display_text = False
 			while True:
 				line = p.stdout.readline().decode("utf-8")
@@ -197,16 +200,11 @@ class GUI(QMainWindow):
 					display_text = True
 				if len(text) > 1 and display_text:
 					self.update_log(text)
-				if "Creating mod directories..." in line:
+				if "Finished ROM dump" in line:
 					break
 				QApplication.processEvents()
 			self.can_randomize = True
 			self.update_log("Finished dumping ROM.")
-
-		# Copy original enum files to different directory
-		if os.path.exists("./mod/globals_enum_original/"):
-			shutil.rmtree("./mod/globals_enum_original/")
-		shutil.copytree("./mod/globals/enum/", "./mod/globals_enum_original/")
 
 		if self.can_randomize:
 			self.button_dump_rom.setEnabled(False)
@@ -215,9 +213,26 @@ class GUI(QMainWindow):
 	def generate(self):
 		self.button_generate_objects.setEnabled(False)
 
+		# Ensure fresh copy of dumped data by copying from the /dump location
+		if os.path.exists("./mod/globals/"):
+			shutil.rmtree("./mod/globals/")
+		p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-CopyAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
+		display_text = True
+		while True:
+			line = p.stdout.readline().decode("utf-8")
+			text = line[2:].rstrip("\n").replace("> ", "")
+			if text.startswith("ERROR:"):
+				display_text = True
+			if len(text) > 1 and display_text:
+				self.update_log(text)
+			if "Creating mod directories..." in line:
+				break
+			QApplication.processEvents()
+
 		# Copy original enum files to different directory
-		if not os.path.exists("./mod/globals_enum_original/"):
-			shutil.copytree("./mod/globals/enum/", "./mod/globals_enum_original/")
+		if os.path.exists("./mod/globals_enum_original/"):
+			shutil.rmtree("./mod/globals_enum_original/")
+		shutil.copytree("./mod/globals/enum/", "./mod/globals_enum_original/")
 
 		# Get data from dumped content
 		self.enums = retrieve_enums("./mod/globals_enum_original/")
@@ -247,8 +262,12 @@ class GUI(QMainWindow):
 
 	def randomize(self):
 		# Ensure fresh copy of dumped data by copying from the /dump location
-		if os.path.exists("./mod/globals/"):
-			shutil.rmtree("./mod/globals/")
+		shutil.rmtree("./mod/")
+		os.mkdir("./mod")
+		with open("./mod/mod.cfg", "w") as file:
+			for line in mod_cfg_lines:
+				file.write(line + "\n")
+
 		p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-CopyAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 		display_text = True
 		while True:
@@ -275,6 +294,7 @@ class GUI(QMainWindow):
 			"sound": 1,
 			"ambient_sound": 1,
 		}
+		last_area = ""
 		for m in maps:
 			for enum_data in m.get_enums("Item"):
 				counter["item"] = m.replace_enum(enum_data, "Item", counter["item"], self.enums)
@@ -284,6 +304,7 @@ class GUI(QMainWindow):
 				counter["sound"] = m.replace_enum(enum_data, "Sound", counter["sound"], self.enums)
 			for enum_data in m.get_enums("AmbientSounds"):
 				counter["ambient_sound"] = m.replace_enum(enum_data, "AmbientSounds", counter["ambient_sound"], self.enums)
+			last_area = m.area
 
 		# Since we're starting in kmr_03 (skipping half the prologue or so), ensure story progress is set properly upon entering
 		# This assumes "InitialMap = kmr_03" and "InitialEntry = Entry2" in mod.cfg

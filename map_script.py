@@ -16,6 +16,7 @@ class MapScript:
 		self.filepath = filepath
 		self.filename = self.filepath.split('/')[-1].split('.')[0]
 		self.nickname = ""
+		self.area = self.filename.split("_")[0]
 
 		xml_tree = ET.parse(self.filepath.split(self.filename)[0] + "../MapTable.xml")
 		root = xml_tree.getroot()
@@ -51,9 +52,8 @@ class MapScript:
 	@classmethod
 	def get_areas(cls, maps):
 		unique_areas = set()
-		for name in [map_script.filename for map_script in maps]:
-			area = name.split("_")[0]
-			unique_areas.add(area)
+		for map_script in [map_script for map_script in maps]:
+			unique_areas.add(map_script.area)
 		return [area for area in unique_areas]
 
 	# Convenience method to access this MapScript like a dictionary
