@@ -12,13 +12,12 @@ import subprocess
 from PyQt5 import QtCore, QtGui, uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QCheckBox, QTableWidgetItem
 
-from utilities import resource_path
-from enums import retrieve_enums, overwrite_enum, randomize_enum
-from items import ITEMS, retrieve_items, item_type, item_value
 from maps import Maps
-from mod_cfg import mod_cfg_lines
-
 from map_script import MapScript
+from mod_cfg import mod_cfg_lines
+from utilities import resource_path
+from items import ITEMS, retrieve_items, item_type, item_value
+from enums import retrieve_enums, overwrite_enum, randomize_enum
 
 
 class GUI(QMainWindow):
@@ -46,16 +45,12 @@ class GUI(QMainWindow):
 		# Ensure proper folder structures
 		if not os.path.exists("./mod"):
 			os.mkdir("./mod")
-
 		if not os.path.exists("./dump"):
 			os.mkdir("./dump")
-
 		if not os.path.exists("./debug"):
 			os.mkdir("./debug/")
-
 		if not os.path.exists("./debug/map_script_objects"):
 			os.mkdir("./debug/map_script_objects")
-
 
 		# Only overwrite mod.cfg if it was deleted
 		if not os.path.isfile("./mod/mod.cfg"):
@@ -88,6 +83,7 @@ class GUI(QMainWindow):
 				elif "ModPath = " in line:
 					lines[i] = f"ModPath = {os.path.abspath('./mod')}\n"
 
+		# If it looks like the /mod folder is correct, enable generating objects
 		if "globals" in os.listdir("./mod"):
 			self.button_dump_rom.setEnabled(False)
 			self.button_generate_objects.setEnabled(True)
@@ -96,19 +92,23 @@ class GUI(QMainWindow):
 
 		self.show()
 
+	# Generate a string based on item names for an extra bit of charm
 	def get_random_seed(self):
 		items = [random.choice([re.sub(r"\d+", "", item) for item in ITEMS if item_type(item) == "Item"]) for i in range(4)]
 		return "".join(items)
 
+	# Check all the maps currently selected
 	def check_selected(self, state):
 		for model_index in self.table_maps.selectionModel().selectedRows():
 			self.table_maps.itemFromIndex(model_index).setCheckState(2)
 
+	# Uncheck all the maps currently selected
 	def uncheck_selected(self, state):
 		for model_index in self.table_maps.selectionModel().selectedRows():
 			self.table_maps.itemFromIndex(model_index).setCheckState(0)
 
-	def maps_selected(self):
+	# Return a list of MapScript instances from the currently checked maps
+	def maps_checked(self):
 		checked_items = []
 		for i in range(self.table_maps.rowCount()):
 			if self.table_maps.item(i, 0).checkState() == 2:
@@ -151,38 +151,19 @@ class GUI(QMainWindow):
 		self.listwidget_log.scrollToBottom()
 		QApplication.processEvents()
 
-	def generate(self):
-		self.button_generate_objects.setEnabled(False)
-
-		# Copy original enum files to different directory
-		if not os.path.exists("./mod/globals_enum_original/"):
-			shutil.copytree("./mod/globals/enum/", "./mod/globals_enum_original/")
-
-		# Get data from dumped content
-		self.enums = retrieve_enums("./mod/globals_enum_original/")
-		retrieve_items()
-		Maps.retrieve_maps()
-
-		# Generate MapScript objects for each .msrc file that was dumped
-		self.map_scripts = []
-		for filename in os.listdir("./mod/map/src/"):
-			if filename.endswith(".mscr"):
-				m = MapScript("./mod/map/src/" + filename)
-				self.update_log(f"Generating: {m}")
-				self.map_scripts.append(m)
-
-		self.update_log("Finished generating MapScript objects. Ready to randomize.")
-
-		# Add row for each map
-		for m in self.map_scripts:
-			self.table_maps.insertRow(self.table_maps.rowCount())
-			item = QTableWidgetItem(f"{m.filename} - {m.nickname}")
-			item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
-			item.setCheckState(QtCore.Qt.Checked)
-			self.table_maps.setItem(self.table_maps.rowCount()-1, 0, item)
-			
-		self.enable_widgets()
-		self.text_seed.setText(self.get_random_seed())
+	def enable_widgets(self, widget=None):
+		if widget in [self.button_dump_rom, self.button_generate_objects, self.button_compile_mod]:
+			return
+		if widget is None:
+			widget = self.centralwidget
+		if hasattr(widget, "children"):
+			if hasattr(widget, "setEnabled"):
+				widget.setEnabled(True)
+			for child in widget.children():
+				self.enable_widgets(child)
+		else:
+			if hasattr(widget, "setEnabled"):
+				widget.setEnabled(True)
 
 	def dump(self):
 		self.button_dump_rom.setEnabled(False)
@@ -218,8 +199,41 @@ class GUI(QMainWindow):
 			self.button_dump_rom.setEnabled(False)
 			self.button_generate_objects.setEnabled(True)
 
+	def generate(self):
+		self.button_generate_objects.setEnabled(False)
+
+		# Copy original enum files to different directory
+		if not os.path.exists("./mod/globals_enum_original/"):
+			shutil.copytree("./mod/globals/enum/", "./mod/globals_enum_original/")
+
+		# Get data from dumped content
+		self.enums = retrieve_enums("./mod/globals_enum_original/")
+		retrieve_items()
+		Maps.retrieve_maps()
+
+		# Generate MapScript objects for each .msrc file that was dumped
+		self.map_scripts = []
+		for filename in os.listdir("./mod/map/src/"):
+			if filename.endswith(".mscr"):
+				m = MapScript("./mod/map/src/" + filename)
+				self.update_log(f"Generating: {m}")
+				self.map_scripts.append(m)
+
+		self.update_log("Finished generating MapScript objects. Ready to randomize.")
+
+		# Add row for each map
+		for m in self.map_scripts:
+			self.table_maps.insertRow(self.table_maps.rowCount())
+			item = QTableWidgetItem(f"{m.filename} - {m.nickname}")
+			item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
+			item.setCheckState(QtCore.Qt.Checked)
+			self.table_maps.setItem(self.table_maps.rowCount()-1, 0, item)
+			
+		self.enable_widgets()
+		self.text_seed.setText(self.get_random_seed())
+
 	def randomize(self):
-		# Ensure fresh copy of dumped data
+		# Ensure fresh copy of dumped data by copying from the /dump location
 		if os.path.exists("./mod/globals/"):
 			shutil.rmtree("./mod/globals/")
 		p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-CopyAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
@@ -238,9 +252,10 @@ class GUI(QMainWindow):
 		# Set the seed based on what's in the textbox
 		random.seed(a=self.text_seed.text(), version=2)
 
-		# Only randomize maps that have been selected, and kmr_03 must be included
-		maps = self.maps_selected()
+		# Only randomize maps that have been checked
+		maps = self.maps_checked()
 
+		# Overwrite all enumerated values with unique identifiers
 		counter = {
 			"item": 1,
 			"song": 1,
@@ -248,19 +263,12 @@ class GUI(QMainWindow):
 			"ambient_sound": 1,
 		}
 		for m in maps:
-			# Overwrite all Items with unique values
 			for enum_data in m.get_enums("Item"):
 				counter["item"] = m.replace_enum(enum_data, "Item", counter["item"], self.enums)
-
-			# Overwrite all Songs with unique values
 			for enum_data in m.get_enums("Song"):
 				counter["song"] = m.replace_enum(enum_data, "Song", counter["song"], self.enums)
-
-			# Overwrite all Sounds with unique values
 			for enum_data in m.get_enums("Sound"):
 				counter["sound"] = m.replace_enum(enum_data, "Sound", counter["sound"], self.enums)
-
-			# Overwrite all Ambient Sounds with unique values
 			for enum_data in m.get_enums("AmbientSounds"):
 				counter["ambient_sound"] = m.replace_enum(enum_data, "AmbientSounds", counter["ambient_sound"], self.enums)
 
@@ -292,6 +300,9 @@ class GUI(QMainWindow):
 				m.replace_map_ascii()
 
 		# Randomize Items (and coins)
+		# TODO: Include ability to include item shops
+		# TODO: Prevent soft-lock scenarios like not being able to buy dried shroom & dusty hammer
+		# TODO: Fix shops so that they display the correct item description and possibly alter pricing
 		if self.chk_items.isChecked():
 			item_types = ["Item"]
 			if self.chk_coins.isChecked():
@@ -299,14 +310,17 @@ class GUI(QMainWindow):
 			randomize_enum(self.enums["Item"], item_types=item_types)
 
 		# Randomize Badges
+		# TODO: Include ability to include badge shops
 		if self.chk_badges.isChecked():
 			randomize_enum(self.enums["Item"], item_types=["Badge"])
 
 		# Randomize Key Items
+		# TODO: Add actual logic to ensure the game is still beatable
 		if self.chk_key_items.isChecked():
 			randomize_enum(self.enums["Item"], item_types=["KeyItem"])
 
 		# Randomize Songs
+		# TODO: Include ability to randomize by map or area
 		if self.chk_music_loading_zone.isChecked():
 			randomize_enum(self.enums["Song"], item_types=None, i_type="Song")
 
@@ -317,6 +331,8 @@ class GUI(QMainWindow):
 		# Randomize Ambient Sounds
 		if self.chk_ambient_sounds.isChecked():
 			randomize_enum(self.enums["AmbientSounds"], item_types=None, i_type="AmbientSounds")
+
+		# TODO: Include Quality-Of-Life options: Upgraded Boots & Hammer, All Partners, All Star Spirits, Warp to Home (D-Up)
 
 		# Overwrite the /globals/enum files with any changes
 		overwrite_enum("./mod/globals/enum/", self.enums["Item"])
@@ -373,22 +389,8 @@ class GUI(QMainWindow):
 			if filepath:
 				shutil.copyfile("./mod/out/" + files[0], filepath)
 
-	def enable_widgets(self, widget=None):
-		if widget in [self.button_dump_rom, self.button_generate_objects, self.button_compile_mod]:
-			return
-		if widget is None:
-			widget = self.centralwidget
-		if hasattr(widget, "children"):
-			if hasattr(widget, "setEnabled"):
-				widget.setEnabled(True)
-			for child in widget.children():
-				self.enable_widgets(child)
-		else:
-			if hasattr(widget, "setEnabled"):
-				widget.setEnabled(True)
 
-
+# Run the GUI
 app = QApplication(sys.argv)
 gui = GUI()
-
 app.exec_()
