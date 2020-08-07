@@ -15,7 +15,7 @@
  - Randomization stability (blacklisting certain maps and preventing crashes)
  
  How to Use:
- - Set up virtual environemtn with pipenv.
+ - Set up virtual environment with pipenv.
  - Running with Python: "python main.py"
  - Building executable: "build_exe.bat". The resulting executable will be in the /Release folder.
  - Note: Full release package must include StarRod folder and config.json in the same path as the executable.
