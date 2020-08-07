@@ -20,6 +20,8 @@
  - Editing GUI: Run "run_qt_designer.bat". This will open QtDesigner. Save changes or additions to the /ui folder.
  - Building executable: Run "build_exe.bat". The resulting executable will be in the /Release folder.
  - Note: Full release package must include StarRod folder and config.json in the same path as the executable.
+ 
+ Currently, the proect is in a mostly-working state but still needs a handful of tweaks and additions to be worthy of an official release package.
 
  
  
