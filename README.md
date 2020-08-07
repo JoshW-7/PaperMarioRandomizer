@@ -16,7 +16,7 @@
  
  How to Use:
  - Set up virtual environment with pipenv.
- - Running with Python: "python main.py"
+ - Running with Python: "pipenv run python main.py"
  - Building executable: "build_exe.bat". The resulting executable will be in the /Release folder.
  - Note: Full release package must include StarRod folder and config.json in the same path as the executable.
  - Edit GUI by executing run_qt_designer. This will open QtDesigner. Save any UI changes or additions to the /ui folder.
