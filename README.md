@@ -15,8 +15,10 @@
  - Randomization stability (blacklisting certain maps and preventing crashes)
  
  How to Use:
- - Build by executing build_exe. Must have Python and pipenv installed with virtual environment set up properly. The resulting executable will be in the /Release folder.
- - Note: Full release package must include StarRod folder and config.json in the same path as the executable
+ - Set up virtual environemtn with pipenv.
+ - Running with Python: "python main.py"
+ - Building executable: "build_exe.bat". The resulting executable will be in the /Release folder.
+ - Note: Full release package must include StarRod folder and config.json in the same path as the executable.
  - Edit GUI by executing run_qt_designer. This will open QtDesigner. Save any UI changes or additions to the /ui folder.
  
  
