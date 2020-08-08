@@ -1,5 +1,7 @@
 # ![Random Bag](ui/icons/random_bag.ico) PaperMarioRandomizer ![Random Bag](ui/icons/random_bag.ico)
 
+![](ui/images/random.png)
+
 A randomizer for Paper Mario 64 using Star Rod (a modding tool by Clover) behind the scenes. It works by utilizing Star Rod to dump the game's contents, which it then parses through in text format to create data structures representing in-game objects like items, badges, key items, songs, sounds, loading zones, and so forth. These data structures are randomized and placed back into a form Star Rod recognizes, which are then used to compile the randomized ROM.
  
  Functional Features:
