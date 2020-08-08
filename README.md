@@ -27,10 +27,10 @@ A randomizer for Paper Mario 64 using Star Rod (a modding tool by Clover) behind
  
  How to Use:
  - Set up virtual environment with pipenv.
- - Running with Python: Run "pipenv run python main.py"
+ - Running with Python: Run "pipenv run python main.py".
  - Editing GUI: Run "run_qt_designer.bat". This will open QtDesigner. Save changes or additions to the /ui folder.
  - Building executable: Run "build_exe.bat". The resulting executable will be in the /Release folder.
- - Note: Full release package must include StarRod folder and config.json in the same path as the executable.
+ - Note: Full release package must include StarRod folder in the same path as the executable.
 
  
  
