@@ -307,22 +307,6 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="chk_items_shops">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Include Shops</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
                  <widget class="QCheckBox" name="chk_coins">
                   <property name="enabled">
                    <bool>false</bool>
@@ -385,16 +369,6 @@
                   </property>
                   <property name="text">
                    <string>Badges</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="chk_badges_shops">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="text">
-                   <string>Include Shops</string>
                   </property>
                  </widget>
                 </item>
@@ -501,27 +475,7 @@
                    <bool>false</bool>
                   </property>
                   <property name="text">
-                   <string>Maps</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="chk_area">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="text">
-                   <string>Areas</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="chk_contiguous">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="text">
-                   <string>Make Contiguous</string>
+                   <string>By Loading Zone</string>
                   </property>
                  </widget>
                 </item>
@@ -591,17 +545,7 @@
                    <bool>false</bool>
                   </property>
                   <property name="text">
-                   <string>Maps</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="chk_music_area">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="text">
-                   <string>Areas</string>
+                   <string>By Map</string>
                   </property>
                  </widget>
                 </item>

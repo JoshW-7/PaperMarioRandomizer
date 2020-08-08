@@ -103,6 +103,7 @@ class MapScript:
 							"original_name": enum_name,
 							"original_value": item_value(enum_name),
 							"original_item_type": item_type(enum_name),
+							"shop_item": True if object_name.startswith("$ShopInventory") else False,
 							"span": (
 								line.find(f".{enum_type}:{enum_name}") + len(enum_type) + 2,
 								line.find(f".{enum_type}:{enum_name}") + len(enum_type) + 2 + len(enum_name) + 1,
@@ -154,9 +155,14 @@ class MapScript:
 		previous_name = enum_data["name"]
 		enum_data["name"] = new_entity_name
 
+		shop_item = False
+		if enum_data["object_name"].startswith("$ShopInventory"):
+			shop_item = True
+
 		global_enums["Entity"]["str"][new_entity_name] = {
 			"previous_name": previous_name,
-			"value": global_enums["Entity"]["str"][previous_name]["value"]
+			"value": global_enums["Entity"]["str"][previous_name]["value"],
+			"shop_item": enum_data["shop_item"],
 		}
 
 		line_to_edit = self.objects[enum_data["object_name"]]["lines"][enum_data["line_number"]]

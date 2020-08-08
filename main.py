@@ -44,6 +44,7 @@ class GUI(QMainWindow):
 		self.button_uncheck_selected.clicked.connect(self.uncheck_selected)
 
 		# Checkbox Logic
+		"""
 		self.chk_loading_zone.stateChanged.connect(lambda state, other=self.chk_area:
 			other.setCheckState(0) if state != 0 else None
 		)
@@ -56,6 +57,7 @@ class GUI(QMainWindow):
 		self.chk_music_area.stateChanged.connect(lambda state, other=self.chk_music_loading_zone:
 			other.setCheckState(0) if state != 0 else None
 		)
+		"""
 
 		# Open the configuration file and prompt user to select a ROM if it isn't already configured
 		with open("config.json", "r") as file:
@@ -405,13 +407,13 @@ class GUI(QMainWindow):
 				m.create_mpat("./mod/map/patch/")
 				m.export_json()
 
-		# TODO: Include Quality-Of-Life options: Upgraded Boots & Hammer, All Partners, All Star Spirits, Warp to Home (D-Up)
+		# Include global level Quality-Of-Life options
 		with open(f"./mod/globals/patch/global.patch", "w") as file:
 			if self.chk_warp.isChecked():
 				for line in extra.GLOBAL_PATCH:
 					file.write(line + "\n")
 
-		# Add Quality of Life options to kmr_03
+		# Add Quality-Of-Life functions to kmr_03 patch file
 		with open(f"mod/map/patch/kmr_03.mpat", "a") as file:
 			for line in extra.PATCH:
 				file.write(line + "\n")
