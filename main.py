@@ -35,9 +35,7 @@ class GUI(QMainWindow):
 
 		# Buttons
 		self.button_dump_rom.clicked.connect(self.dump)
-		self.button_dump_rom.setEnabled(True)
 		self.button_generate_objects.clicked.connect(self.generate)
-		self.button_generate_objects.setEnabled(True)
 		self.button_randomize.clicked.connect(self.randomize)
 		self.button_compile_mod.clicked.connect(self.compile)
 		self.button_check_selected.clicked.connect(self.check_selected)
@@ -59,23 +57,24 @@ class GUI(QMainWindow):
 		)
 		"""
 
-		# Open the configuration file and prompt user to select a ROM if it isn't already configured
-		with open("config.json", "r") as file:
-			self.config = json.load(file)
-		if self.config["rom"] == None:
-			self.open()
-
 		# Ensure proper folder structures
 		if not os.path.exists("./mod"):
 			os.mkdir("./mod")
 		if not os.path.exists("./dump"):
 			os.mkdir("./dump")
-			os.mkdir("./dump/dump")
-			self.open()
 		if not os.path.exists("./debug"):
 			os.mkdir("./debug/")
 		if not os.path.exists("./debug/map_script_objects"):
 			os.mkdir("./debug/map_script_objects")
+		if "config.json" not in os.listdir():
+			with open("config.json", "w") as file:
+				json.dump({"rom": None}, file, indent=4)
+
+		# Open the configuration file and prompt user to select a ROM if it isn't already configured
+		with open("config.json", "r") as file:
+			self.config = json.load(file)
+		if self.config["rom"] == None:
+			self.open()
 
 		# Only overwrite mod.cfg if it was deleted
 		if not os.path.isfile("./mod/mod.cfg"):
@@ -83,31 +82,13 @@ class GUI(QMainWindow):
 				for line in mod_cfg_lines:
 					file.write(line + "\n")
 
-		# Only allow dumping ROM if the rom path isn't configured yet
-		with open("./StarRod/cfg/main.cfg", "r") as file:
-			for line in file.readlines():
-				if "RomPath = " in line:
-					if "null" in line:
-						self.button_dump_rom.setEnabled(False)
-						self.button_generate_objects.setEnabled(False)
-						break
-
-		# Overwrite StarRod main.cfg with mod and rom paths
-		with open("./StarRod/cfg/main.cfg", "r") as file:
-			lines = file.readlines()
-			for i,line in enumerate(lines):
-				if "RomPath = " in line:
-					romname = self.config["rom"]
-					lines[i] = f"RomPath = {os.path.abspath(f'./dump/{romname}')}\n"
-				elif "ModPath = " in line:
-					lines[i] = f"ModPath = {os.path.abspath('./mod')}\n"
-
 		# If it looks like the /mod folder is correct, enable generating objects
-		if "globals" in os.listdir("./dump/dump"):
-			self.button_dump_rom.setEnabled(False)
-			self.button_generate_objects.setEnabled(True)
-		else:
-			self.button_generate_objects.setEnabled(False)
+		self.button_dump_rom.setEnabled(True)
+		self.button_generate_objects.setEnabled(False)
+		if os.path.isdir("./dump/dump"):
+			if "globals" in os.listdir("./dump/dump"):
+				self.button_dump_rom.setEnabled(False)
+				self.button_generate_objects.setEnabled(True)
 
 		self.show()
 
@@ -139,27 +120,12 @@ class GUI(QMainWindow):
 		options = QFileDialog.Options()
 		filepath, _ = QFileDialog.getOpenFileName(self, "Choose ROM", "", "Vanilla PM64 ROM (*.z64)", options=options)
 		if filepath:
-			# Copy ROM to where we're running
-			if not os.path.exists("./dump"):
-				os.mkdir("./dump")
 			try:
-				shutil.copy(filepath, "./dump")
+				shutil.copy(filepath, "./dump/pm64.z64")
 			except shutil.SameFileError:
 				pass
-			filename = filepath.split("/")[-1]
 
-			with open("./StarRod/cfg/main.cfg", "r") as file:
-				lines = file.readlines()
-			for i,line in enumerate(lines):
-				if "RomPath = " in line:
-					lines[i] = f"RomPath = {os.path.abspath(f'./dump/{filename}')}\n"
-				elif "ModPath = " in line:
-					lines[i] = f"ModPath = {os.path.abspath('./mod')}\n"
-			with open("./StarRod/cfg/main.cfg", "w") as file:
-				for line in lines:
-					file.write(line)
-
-			self.config["rom"] = filename
+			self.config["rom"] = "./dump/pm64.z64"
 			with open("config.json", "w") as file:
 				json.dump(self.config, file, indent=4)
 
@@ -188,12 +154,10 @@ class GUI(QMainWindow):
 		self.button_dump_rom.setEnabled(False)
 
 		# Dump ROM assets
-		folders = os.listdir("./dump/dump/")
 		self.can_randomize = True
 		self.update_log("Dumping ROM (may take a couple minutes)...")
-		self.update_log("If StarRod says it couldn't find a ROM, click OK. It's fine.")
 		
-		if "globals" not in folders:
+		if not os.path.isdir("./dump/dump") or "globals" not in os.listdir("./dump/dump"):
 			self.can_randomize = False
 			p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-DumpAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 			display_text = False
@@ -265,6 +229,7 @@ class GUI(QMainWindow):
 		self.text_seed.setText(self.get_random_seed())
 
 	def randomize(self):
+		self.button_randomize.setEnabled(False)
 		# Ensure fresh copy of dumped data by copying from the /dump location
 		shutil.rmtree("./mod/")
 		os.mkdir("./mod")
@@ -420,8 +385,11 @@ class GUI(QMainWindow):
 
 		self.update_log("Finished Map Patches. Ready to compile mod.")
 		self.button_compile_mod.setEnabled(True)
+		self.button_randomize.setEnabled(True)
 
 	def compile(self):
+		self.button_compile_mod.setEnabled(False)
+		self.button_randomize.setEnabled(False)
 		# Tell Star Rod to compile the mod
 		p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-CompileMod"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 		self.update_log("Compiling Mod...")
@@ -450,6 +418,9 @@ class GUI(QMainWindow):
 			filepath, _ = QFileDialog.getSaveFileName(self, "Save Randomized ROM", f"Paper Mario Randomized (V{self.version})", "(*.z64)", options=options)
 			if filepath:
 				shutil.copyfile("./mod/out/" + files[0], filepath)
+
+		self.button_compile_mod.setEnabled(True)
+		self.button_randomize.setEnabled(True)
 
 
 # Run the GUI
