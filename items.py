@@ -20,6 +20,8 @@ def item_value(item_name):
 def item_type(item_name):
     value = item_value(item_name)
     if value:
+        if value <= 0x07:
+            return "Special"
         if value <= 0x7F:
             return "KeyItem"
         elif value > 0x7F and value <= 0xDF:
