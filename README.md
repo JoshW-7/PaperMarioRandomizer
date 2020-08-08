@@ -12,7 +12,7 @@ A randomizer for Paper Mario 64 using Star Rod (a modding tool by Clover) behind
    - Upgraded boots and hammer
    - All partners
    - All star spirits
-   - "Warp to Home" ability, which warps Mario to the warp pipe in Toad Town
+   - "Warp to Home" ability, which allows Mario to travel to the warp pipe in Toad Town at any time
 
  Planned Features:
  - Loading Zone randomization (by area, e.g. only exits that lead to new areas would be randomized)
