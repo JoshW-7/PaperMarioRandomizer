@@ -7,11 +7,16 @@ A randomizer for Paper Mario 64 using Star Rod (a modding tool by Clover) behind
  - Song/Sound randomization
  - Loading Zone randomization (by all loading zones)
  - Ability to select which maps are included in randomization
+ - Quality of Life options:
+   - Action commands
+   - Upgraded boots and hammer
+   - All partners
+   - All star spirits
+   - "Warp to Home" ability, which allows Mario to travel to the warp pipe in Toad Town at any time
 
  Planned Features:
  - Loading Zone randomization (by area, e.g. only exits that lead to new areas would be randomized)
  - Smart Key Item randomization (implementing logic to prevent soft-locks)
- - Quality of Life options (Start with upgraded Hammer/Boots, Star Spirits, Partners, etc)
  - Graphics randomization
  - Randomization stability (blacklisting certain maps and preventing crashes)
  
