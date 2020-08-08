@@ -12,6 +12,8 @@ import subprocess
 from PyQt5 import QtCore, QtGui, uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QCheckBox, QTableWidgetItem
 
+import extra
+
 from maps import Maps
 from map_script import MapScript
 from mod_cfg import mod_cfg_lines
@@ -306,15 +308,6 @@ class GUI(QMainWindow):
 				counter["ambient_sound"] = m.replace_enum(enum_data, "AmbientSounds", counter["ambient_sound"], self.enums)
 			last_area = m.area
 
-		# Since we're starting in kmr_03 (skipping half the prologue or so), ensure story progress is set properly upon entering
-		# This assumes "InitialMap = kmr_03" and "InitialEntry = Entry2" in mod.cfg
-		kmr_03 = MapScript.get("kmr_03")
-		kmr_03["$Script_Main_EnterWalk"]["lines"].insert(2, "\tIf *StoryProgress < FFFFFF86")
-		kmr_03["$Script_Main_EnterWalk"]["lines"].insert(3, "\t\tSet *StoryProgress FFFFFF86")
-		kmr_03["$Script_Main_EnterWalk"]["lines"].insert(4, "\tEndIf")
-		kmr_03["$Script_Main_EnterWalk"]["altered"] = True
-		kmr_03.altered = True
-
 		# Randomize Loading Zones
 		# TODO: Add logic for contiguous loading zone randomization
 		# TODO: Add logic for loading zone randomization by area instead of by map (only area exits are randomized and only connect to other area exits)
@@ -368,8 +361,6 @@ class GUI(QMainWindow):
 		if self.chk_ambient_sounds.isChecked():
 			randomize_enum(self.enums["AmbientSounds"], item_types=None, i_type="AmbientSounds")
 
-		# TODO: Include Quality-Of-Life options: Upgraded Boots & Hammer, All Partners, All Star Spirits, Warp to Home (D-Up)
-
 		# Overwrite the /globals/enum files with any changes
 		overwrite_enum("./mod/globals/enum/", self.enums["Item"])
 		overwrite_enum("./mod/globals/enum/", self.enums["Song"])
@@ -380,6 +371,33 @@ class GUI(QMainWindow):
 		for filename in os.listdir("./mod/map/patch/"):
 			os.remove(f"./mod/map/patch/{filename}")
 
+		# Since we're starting in kmr_03 (skipping half the prologue or so), ensure story progress is set properly upon entering
+		# This assumes "InitialMap = kmr_03" and "InitialEntry = Entry2" in mod.cfg
+		kmr_03 = MapScript.get("kmr_03")
+		kmr_03["$Script_Main_EnterWalk"]["lines"].insert(2, "\tIf *StoryProgress < FFFFFF8E")
+
+		lines = [
+			"\t\tCall $GetActionCommands()",
+			"\t\tCall $HaveRegularHammer()",
+			"\t\tCall $HaveGoombario()",
+			"\t\tCall $SetPartnerGoombario()",
+		]
+		if self.chk_upgrade_boots_hammer.isChecked():
+			lines.append("\t\tCall $UltraHammerandBoots()")
+		if self.chk_partners.isChecked():
+			lines.append("\t\tCall $AllPartners()")
+		if self.chk_star_spirits.isChecked():
+			lines.append("\t\tCall $GiveMaxStarPower()")
+		for i,line in enumerate(lines):
+			kmr_03["$Script_Main_EnterWalk"]["lines"].insert(i+3, line)
+
+		kmr_03["$Script_Main_EnterWalk"]["lines"].insert(3+len(lines), "\t\tSet *StoryProgress FFFFFF8E")
+		kmr_03["$Script_Main_EnterWalk"]["lines"].insert(4+len(lines), "\tEndIf")
+		kmr_03["$Script_Main_EnterWalk"]["altered"] = True
+		kmr_03.altered = True
+		if kmr_03 not in maps:
+			maps.append(kmr_03)
+
 		# Create map patches for any map script that has been modified
 		for m in maps:
 			if m.altered:
@@ -387,10 +405,16 @@ class GUI(QMainWindow):
 				m.create_mpat("./mod/map/patch/")
 				m.export_json()
 
-		# Ensure kmr_03 gets a map script if it wasn't selected for randomization (as it's the entry point for other modifications)
-		if MapScript.get("kmr_03") not in maps:
-			MapScript.get("kmr_03").create_mpat("./mod/map/patch/")
-			MapScript.get("kmr_03").export_json()
+		# TODO: Include Quality-Of-Life options: Upgraded Boots & Hammer, All Partners, All Star Spirits, Warp to Home (D-Up)
+		with open(f"./mod/globals/patch/global.patch", "w") as file:
+			if self.chk_warp.isChecked():
+				for line in extra.GLOBAL_PATCH:
+					file.write(line + "\n")
+
+		# Add Quality of Life options to kmr_03
+		with open(f"mod/map/patch/kmr_03.mpat", "a") as file:
+			for line in extra.PATCH:
+				file.write(line + "\n")
 
 		self.update_log("Finished Map Patches. Ready to compile mod.")
 		self.button_compile_mod.setEnabled(True)
