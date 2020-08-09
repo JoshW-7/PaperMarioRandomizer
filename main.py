@@ -222,7 +222,10 @@ class GUI(QMainWindow):
 			self.table_maps.insertRow(self.table_maps.rowCount())
 			item = QTableWidgetItem(f"{m.filename} - {m.nickname}")
 			item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
-			item.setCheckState(QtCore.Qt.Checked)
+			if m.filename not in Maps.blacklist:
+				item.setCheckState(QtCore.Qt.Checked)
+			else:
+				item.setCheckState(QtCore.Qt.Unchecked)
 			self.table_maps.setItem(self.table_maps.rowCount()-1, 0, item)
 			
 		self.enable_widgets()
@@ -364,6 +367,13 @@ class GUI(QMainWindow):
 		kmr_03.altered = True
 		if kmr_03 not in maps:
 			maps.append(kmr_03)
+
+		# Remove any places where story progress is set (aside from entry point)
+		"""
+		for m in maps:
+			if m != kmr_03:
+				m.remove_story_progress()
+		"""
 
 		# Create map patches for any map script that has been modified
 		for m in maps:

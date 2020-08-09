@@ -151,6 +151,18 @@ class MapScript:
 					if text in Maps.get_maps():
 						self.map_ascii[object_name] = text
 
+	def remove_story_progress(self):
+		for object_name,data in self.objects.items():
+			new_lines = []
+			for line in data["lines"]:
+				if "Set   *StoryProgress" in line:
+					data["altered"] = True
+				else:
+					new_lines.append(line)
+			if data["altered"]:
+				data["lines"] = new_lines
+				self.altered = True
+
 	def replace_entity(self, enum_data, new_entity_name, global_enums):
 		previous_name = enum_data["name"]
 		enum_data["name"] = new_entity_name
