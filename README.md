@@ -25,7 +25,7 @@ A randomizer for Paper Mario 64 using Star Rod (a modding tool by Clover) behind
  - Graphics randomization
  - Randomization stability (blacklisting certain maps and preventing crashes)
  
- How to Use:
+ How to Contribute:
  - Set up virtual environment with pipenv.
  - Running with Python: Run "pipenv run python main.py".
  - Editing GUI: Run "run_qt_designer.bat". This will open QtDesigner. Save changes or additions to the /ui folder.
