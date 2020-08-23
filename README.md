@@ -32,6 +32,7 @@ A randomizer for Paper Mario 64 using Star Rod (a modding tool by Clover) behind
  - Building executable: Run "build_exe.bat". The resulting executable will be in the /Release folder.
  - Note: Full release package must include StarRod folder in the same path as the executable.
 
+![](ui/images/gui.png)
  
  
  
