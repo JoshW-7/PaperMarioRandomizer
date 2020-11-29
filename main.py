@@ -28,7 +28,7 @@ class GUI(QMainWindow):
 
 	def __init__(self):
 		super(GUI, self).__init__()
-		uic.loadUi(resource_path("ui\\main_window.ui"), self)
+		uic.loadUi(resource_path("ui/main_window.ui"), self)
 
 		# Actions
 		self.action_open.triggered.connect(self.open)
