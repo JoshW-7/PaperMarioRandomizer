@@ -8,9 +8,9 @@ pylint = "*"
 
 [packages]
 pyinstaller = "==3.6"
-pyqt5 = "==5.13.2"
+pyqt5 = "==5.15.2"
 pyqt5designer = "==5.14.1"
-psutil = "*"
+psutil = "==5.8.0"
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"

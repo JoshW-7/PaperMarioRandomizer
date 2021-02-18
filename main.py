@@ -24,7 +24,7 @@ from enums import retrieve_enums, overwrite_enum, randomize_enum
 
 class GUI(QMainWindow):
 
-	version = 0.4
+	version = 0.41
 
 	def __init__(self):
 		super(GUI, self).__init__()
@@ -160,7 +160,8 @@ class GUI(QMainWindow):
 		if not os.path.isdir("./dump/dump") or "globals" not in os.listdir("./dump/dump"):
 			self.can_randomize = False
 			p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-DumpAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
-			display_text = False
+			display_text = True
+			valid = True
 			while True:
 				line = p.stdout.readline().decode("utf-8")
 				text = line[2:].rstrip("\n").replace("> ", "")
@@ -171,7 +172,7 @@ class GUI(QMainWindow):
 				if "Finished ROM dump" in line:
 					break
 				QApplication.processEvents()
-			self.can_randomize = True
+			self.can_randomize = valid
 			self.update_log("Finished dumping ROM.")
 
 		if self.can_randomize:
