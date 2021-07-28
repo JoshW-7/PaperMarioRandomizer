@@ -159,7 +159,7 @@ class GUI(QMainWindow):
 		
 		if not os.path.isdir("./dump/dump") or "globals" not in os.listdir("./dump/dump"):
 			self.can_randomize = False
-			p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-DumpAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
+			p = subprocess.Popen("java -jar StarRod.jar -DumpAssets", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 			display_text = True
 			valid = True
 			while True:
@@ -185,7 +185,7 @@ class GUI(QMainWindow):
 		# Ensure fresh copy of dumped data by copying from the /dump location
 		if os.path.exists("./mod/globals/"):
 			shutil.rmtree("./mod/globals/")
-		p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-CopyAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
+		p = subprocess.Popen("java -jar StarRod.jar -CopyAssets", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 		display_text = True
 		while True:
 			line = p.stdout.readline().decode("utf-8")
@@ -241,7 +241,7 @@ class GUI(QMainWindow):
 			for line in mod_cfg_lines:
 				file.write(line + "\n")
 
-		p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-CopyAssets"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
+		p = subprocess.Popen("java -jar StarRod.jar -CopyAssets", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 		display_text = True
 		while True:
 			line = p.stdout.readline().decode("utf-8")
@@ -402,7 +402,7 @@ class GUI(QMainWindow):
 		self.button_compile_mod.setEnabled(False)
 		self.button_randomize.setEnabled(False)
 		# Tell Star Rod to compile the mod
-		p = subprocess.Popen(["java", "-jar", "StarRod.jar", "-CompileMod"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
+		p = subprocess.Popen("java -jar StarRod.jar -CompileMod", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="./StarRod/")
 		self.update_log("Compiling Mod...")
 		display_text = False
 		while True:
